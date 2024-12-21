@@ -1,4 +1,3 @@
-import { AgentSigner } from './agent-signer';
 import { ethers } from 'ethers';
 import {
   LIT_RPC,
@@ -6,8 +5,11 @@ import {
   LIT_NETWORK,
 } from '@lit-protocol/constants';
 import { existsSync, mkdirSync, rmSync } from 'fs';
-import { localStorage } from './localstorage';
+
 import type { MintWithAuthResponse } from '@lit-protocol/types';
+
+import { localStorage } from './localstorage';
+import { AgentSigner } from './agent-signer';
 
 interface WalletInfo {
   pkpInfo: {
