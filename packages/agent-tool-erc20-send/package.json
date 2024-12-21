@@ -1,0 +1,36 @@
+{
+  "name": "@lit-protocol/agent-tool-erc20-send",
+  "version": "0.0.1",
+  "dependencies": {
+    "@lit-protocol/agent-toolkit": "workspace:*",
+    "@swc/helpers": "~0.5.11",
+    "zod": "^3.24.1"
+  },
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "typings": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "!**/*.tsbuildinfo"
+  ],
+  "nx": {
+    "sourceRoot": "packages/agent-tool-erc20-send/src",
+    "projectType": "library",
+    "targets": {
+      "build": {
+        "executor": "@nx/js:swc",
+        "outputs": [
+          "{options.outputPath}"
+        ],
+        "options": {
+          "outputPath": "packages/agent-tool-erc20-send/dist",
+          "main": "packages/agent-tool-erc20-send/src/index.ts",
+          "tsConfig": "packages/agent-tool-erc20-send/tsconfig.lib.json",
+          "skipTypeCheck": true,
+          "stripLeadingPaths": true
+        }
+      }
+    },
+    "name": "agent-tool-erc20-send"
+  }
+}

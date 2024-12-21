@@ -8,6 +8,9 @@
     },
     {
       "path": "./packages/agent-toolkit"
+    },
+    {
+      "path": "./packages/agent-tool-erc20-send"
     }
   ]
 }
