@@ -6,6 +6,7 @@
   },
   "dependencies": {
     "@lit-protocol/auth-helpers": "catalog:",
+    "@lit-protocol/constants": "catalog:",
     "@lit-protocol/contracts-sdk": "catalog:",
     "@lit-protocol/lit-node-client-nodejs": "catalog:",
     "@swc/helpers": "~0.5.11",
