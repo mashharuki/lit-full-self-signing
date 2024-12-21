@@ -1,0 +1,37 @@
+{
+  "name": "@lit-protocol/agent-toolkit",
+  "version": "0.1.0",
+  "dependencies": {
+    "@swc/helpers": "~0.5.11",
+    "ethers": "catalog:",
+    "openai": "^4.77.0",
+    "zod": "^3.24.1"
+  },
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "typings": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "!**/*.tsbuildinfo"
+  ],
+  "nx": {
+    "sourceRoot": "packages/agent-toolkit/src",
+    "projectType": "library",
+    "targets": {
+      "build": {
+        "executor": "@nx/js:swc",
+        "outputs": [
+          "{options.outputPath}"
+        ],
+        "options": {
+          "outputPath": "packages/agent-toolkit/dist",
+          "main": "packages/agent-toolkit/src/index.ts",
+          "tsConfig": "packages/agent-toolkit/tsconfig.lib.json",
+          "skipTypeCheck": true,
+          "stripLeadingPaths": true
+        }
+      }
+    },
+    "name": "agent-toolkit"
+  }
+}
