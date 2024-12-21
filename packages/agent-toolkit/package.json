@@ -19,7 +19,7 @@
     "projectType": "library",
     "targets": {
       "build": {
-        "executor": "@nx/js:swc",
+        "executor": "@nx/js:tsc",
         "outputs": [
           "{options.outputPath}"
         ],
@@ -27,8 +27,9 @@
           "outputPath": "packages/agent-toolkit/dist",
           "main": "packages/agent-toolkit/src/index.ts",
           "tsConfig": "packages/agent-toolkit/tsconfig.lib.json",
-          "skipTypeCheck": true,
-          "stripLeadingPaths": true
+          "assets": [
+            "packages/agent-toolkit/*.md"
+          ]
         }
       }
     },

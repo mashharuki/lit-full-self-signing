@@ -9,7 +9,6 @@
     "@lit-protocol/constants": "catalog:",
     "@lit-protocol/contracts-sdk": "catalog:",
     "@lit-protocol/lit-node-client-nodejs": "catalog:",
-    "@swc/helpers": "~0.5.11",
     "ethers": "catalog:",
     "node-localstorage": "^3.0.5"
   },
@@ -30,7 +29,7 @@
     "projectType": "library",
     "targets": {
       "build": {
-        "executor": "@nx/js:swc",
+        "executor": "@nx/js:tsc",
         "outputs": [
           "{options.outputPath}"
         ],
@@ -38,8 +37,9 @@
           "outputPath": "packages/agent-signer/dist",
           "main": "packages/agent-signer/src/index.ts",
           "tsConfig": "packages/agent-signer/tsconfig.lib.json",
-          "skipTypeCheck": true,
-          "stripLeadingPaths": true
+          "assets": [
+            "packages/agent-signer/*.md"
+          ]
         }
       }
     },
