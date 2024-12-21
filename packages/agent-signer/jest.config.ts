@@ -27,4 +27,5 @@ export default {
   moduleFileExtensions: ['ts', 'js', 'html'],
   testEnvironment: 'node',
   coverageDirectory: '../../coverage/packages/agent-signer',
+  setupFilesAfterEnv: ['./test-setup.ts'],
 };
