@@ -9,6 +9,9 @@ catalogs:
     '@lit-protocol/auth-helpers':
       specifier: 7.0.2
       version: 7.0.2
+    '@lit-protocol/constants':
+      specifier: 7.0.2
+      version: 7.0.2
     '@lit-protocol/contracts-sdk':
       specifier: 7.0.2
       version: 7.0.2
@@ -102,6 +105,9 @@ importers:
   packages/agent-signer:
     dependencies:
       '@lit-protocol/auth-helpers':
+        specifier: 'catalog:'
+        version: 7.0.2(typescript@5.6.3)
+      '@lit-protocol/constants':
         specifier: 'catalog:'
         version: 7.0.2(typescript@5.6.3)
       '@lit-protocol/contracts-sdk':
