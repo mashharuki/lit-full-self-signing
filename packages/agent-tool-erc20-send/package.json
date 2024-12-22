@@ -7,7 +7,9 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "esbuild": "^0.19.11"
+    "@dotenvx/dotenvx": "^1.31.3",
+    "esbuild": "^0.19.11",
+    "node-fetch": "^2.7.0"
   },
   "type": "commonjs",
   "main": "./dist/src/index.js",
@@ -48,6 +50,18 @@
         "outputs": [
           "{workspaceRoot}/packages/agent-tool-erc20-send/artifacts"
         ]
+      },
+      "deploy": {
+        "executor": "nx:run-commands",
+        "dependsOn": [
+          "build:action"
+        ],
+        "options": {
+          "commands": [
+            "node tools/scripts/deploy-lit-action.js"
+          ],
+          "cwd": "packages/agent-tool-erc20-send"
+        }
       }
     },
     "name": "agent-tool-erc20-send"
