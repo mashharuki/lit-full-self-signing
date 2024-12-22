@@ -4,6 +4,9 @@
   "include": [],
   "references": [
     {
+      "path": "../agent-signer"
+    },
+    {
       "path": "./tsconfig.lib.json"
     },
     {

@@ -1,0 +1,26 @@
+{
+  "name": "agent-cli",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/agent-cli/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/agent-cli",
+        "main": "packages/agent-cli/src/index.ts",
+        "tsConfig": "packages/agent-cli/tsconfig.lib.json",
+        "assets": ["packages/agent-cli/*.md"]
+      }
+    },
+    "start": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node dist/packages/agent-cli/src/index.js"
+      },
+      "dependsOn": ["build"]
+    }
+  },
+  "tags": []
+}

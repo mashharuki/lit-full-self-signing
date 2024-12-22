@@ -64,6 +64,13 @@ export class AgentSigner {
       new ethers.providers.JsonRpcProvider(LIT_RPC.CHRONICLE_YELLOWSTONE)
     );
 
+    const ethersWalletBalance = await agentSigner.ethersWallet.getBalance();
+    if (ethersWalletBalance.lt(ethers.utils.parseEther('0.01'))) {
+      throw new Error(
+        'Insufficient balance: Auth wallet does not have enough Lit test tokens'
+      );
+    }
+
     agentSigner.litContracts = new LitContracts({
       signer: agentSigner.ethersWallet,
       network: litNetwork,
