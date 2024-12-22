@@ -10,6 +10,9 @@
     "@nx/eslint-plugin": "20.3.0",
     "@nx/jest": "20.3.0",
     "@nx/js": "20.3.0",
+    "@swc-node/register": "~1.9.1",
+    "@swc/core": "~1.5.7",
+    "@swc/helpers": "~0.5.11",
     "@types/jest": "^29.5.12",
     "@types/node": "18.16.9",
     "eslint": "^9.8.0",
@@ -37,5 +40,6 @@
         }
       }
     }
-  }
+  },
+  "dependencies": {}
 }

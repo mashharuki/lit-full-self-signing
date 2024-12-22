@@ -11,6 +11,9 @@
     },
     {
       "path": "./packages/agent-tool-erc20-send"
+    },
+    {
+      "path": "./packages/agent-cli"
     }
   ]
 }
