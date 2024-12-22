@@ -13,13 +13,16 @@ import {
 
 export const SendERC20 = {
   description: sendERC20LitActionDescription,
+
   Parameters: {
     type: {} as SendERC20LitActionParameters, // for type inference
     schema: SendERC20LitActionSchema,
     descriptions: SendERC20LitActionParameterDescriptions,
     validate: isValidSendERC20Parameters,
   },
+
   metadata: SendERC20LitActionMetadata,
+
   Policy: {
     type: {} as SendERC20Policy, // for type inference
     schema: SendERC20PolicySchema,
@@ -31,3 +34,33 @@ export const SendERC20 = {
 // Registry functionality
 export const SUPPORTED_TOOLS = ['SendERC20'] as const;
 export type SupportedToolTypes = (typeof SUPPORTED_TOOLS)[number];
+
+export interface ToolInfo {
+  name: string;
+  description: string;
+  parameters: {
+    name: string;
+    description: string;
+  }[];
+}
+
+export function listAvailableTools(): ToolInfo[] {
+  return [
+    {
+      name: 'SendERC20',
+      description: SendERC20.description,
+      parameters: Object.entries(SendERC20.Parameters.descriptions).map(
+        ([name, description]) => ({
+          name,
+          description,
+        })
+      ),
+    },
+  ];
+}
+
+export function isToolSupported(
+  toolType: string
+): toolType is SupportedToolTypes {
+  return SUPPORTED_TOOLS.includes(toolType as SupportedToolTypes);
+}
