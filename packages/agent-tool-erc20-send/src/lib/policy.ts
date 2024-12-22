@@ -6,6 +6,7 @@ import {
   registerPolicy,
 } from '@lit-protocol/agent-toolkit';
 import { z } from 'zod';
+import { ethers } from 'ethers';
 
 // --- SendERC20 Policy Implementation ---
 export interface SendERC20Policy extends BaseAgentToolPolicy {
@@ -21,13 +22,14 @@ export const SendERC20PolicySchema = BaseLitActionPolicySchema.extend({
   maxAmount: z.string().refine(
     (val) => {
       try {
-        ethers.BigNumber.from(val);
-        return true;
+        const bn = ethers.BigNumber.from(val);
+        // Ensure the number is not negative
+        return !bn.isNegative();
       } catch {
         return false;
       }
     },
-    { message: 'Invalid amount format' }
+    { message: 'Invalid amount format. Must be a non-negative integer.' }
   ),
   allowedTokens: z.array(BaseEthereumAddressSchema),
   allowedRecipients: z.array(BaseEthereumAddressSchema),
