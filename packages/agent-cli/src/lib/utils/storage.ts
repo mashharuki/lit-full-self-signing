@@ -1,44 +1,24 @@
 import { LocalStorage } from 'node-localstorage';
-import { existsSync, mkdirSync } from 'fs';
-import { PkpInfo } from '@lit-protocol/agent-signer/src/lib/types';
+import { StoredWallet } from '../wallet';
 
-// Initialize storage directory
-const STORAGE_DIR = './.agent-cli-storage';
-if (!existsSync(STORAGE_DIR)) {
-  mkdirSync(STORAGE_DIR);
-}
+class Storage {
+  private localStorage: LocalStorage;
 
-// Initialize local storage
-const localStorage = new LocalStorage(STORAGE_DIR);
+  constructor() {
+    this.localStorage = new LocalStorage('./.lit-agent-storage');
+  }
 
-export interface StoredWallet {
-  privateKey: string;
-  address: string;
-  timestamp: number;
-}
-
-export const storage = {
   storeWallet(wallet: StoredWallet) {
-    localStorage.setItem('wallet', JSON.stringify(wallet));
-  },
+    this.localStorage.setItem('wallet', JSON.stringify(wallet));
+  }
 
   getWallet(): StoredWallet | null {
-    const data = localStorage.getItem('wallet');
-    if (!data) return null;
-    return JSON.parse(data);
-  },
+    const wallet = this.localStorage.getItem('wallet');
+    if (wallet) {
+      return JSON.parse(wallet);
+    }
+    return null;
+  }
+}
 
-  storePkpInfo(pkpInfo: PkpInfo) {
-    localStorage.setItem('pkpInfo', JSON.stringify(pkpInfo));
-  },
-
-  getPkpInfo(): PkpInfo | null {
-    const data = localStorage.getItem('pkpInfo');
-    if (!data) return null;
-    return JSON.parse(data);
-  },
-
-  clear() {
-    localStorage.clear();
-  },
-};
+export const storage = new Storage();

@@ -13,7 +13,7 @@ const menuChoices: MenuChoice[] = [
     name: 'Add Tools to Agent Wallet',
     value: 'add-tools',
     handler: async (cli: AgentCLI) => {
-      cli.agentSigner = await addTools(cli.agentSigner!);
+      await addTools(cli.agentSigner!);
     },
   },
 ];

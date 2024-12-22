@@ -42,18 +42,19 @@ export class AgentCLI {
         // Initialize AgentSigner with auth wallet
         this.agentSigner = await AgentSigner.create(privateKey);
 
-        // Create and store PKP (agent wallet)
-        const pkpInfo = await this.agentSigner.createWallet();
-        storage.storePkpInfo(pkpInfo.pkpInfo);
+        // Create PKP (agent wallet)
+        await this.agentSigner.createWallet();
         logger.success('Agent wallet initialized successfully!');
       } catch (error) {
         if (
           error instanceof Error &&
           error.message.includes('Insufficient balance')
         ) {
-          logger.error('Your wallet does not have enough Lit test tokens.');
+          logger.error(
+            'Your Auth Wallet does not have enough Lit test tokens to mint the Agent Wallet.'
+          );
           logger.info(
-            'Please get some using the faucet before continuing: https://chronicle-yellowstone-faucet.getlit.dev/'
+            'Please get Lit test tokens using the faucet before continuing: https://chronicle-yellowstone-faucet.getlit.dev/'
           );
           process.exit(1);
         }
