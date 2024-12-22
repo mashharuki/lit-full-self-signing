@@ -5,7 +5,7 @@
     "composite": true,
     "declaration": true,
     "declarationMap": true,
-    "emitDeclarationOnly": true,
+    "emitDeclarationOnly": false,
     "emitDecoratorMetadata": false,
     "esModuleInterop": true,
     "experimentalDecorators": false,
@@ -14,8 +14,8 @@
     "incremental": true,
     "isolatedModules": true,
     "lib": ["es2022"],
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "commonjs",
+    "moduleResolution": "node",
     "noEmitOnError": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
@@ -29,6 +29,15 @@
     "sourceMap": false,
     "strict": true,
     "target": "es2022",
-    "verbatimModuleSyntax": false
+    "verbatimModuleSyntax": false,
+    "baseUrl": ".",
+    "paths": {
+      "@lit-protocol/agent-toolkit": ["./packages/agent-toolkit/src"],
+      "@lit-protocol/agent-toolkit/*": ["./packages/agent-toolkit/src/*"],
+      "@lit-protocol/agent-signer": ["./packages/agent-signer/src"],
+      "@lit-protocol/agent-tool-erc20-send": [
+        "./packages/agent-tool-erc20-send/src"
+      ]
+    }
   }
 }
