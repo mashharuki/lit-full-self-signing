@@ -1,8 +1,8 @@
 import inquirer from 'inquirer';
 import { ethers } from 'ethers';
 
-import { storage } from '../utils/storage';
-import { logger } from '../utils/logger';
+import { storage } from './utils/storage';
+import { logger } from './utils/logger';
 
 export async function getAuthPrivateKey(): Promise<string> {
   // Check if wallet already exists
@@ -12,7 +12,7 @@ export async function getAuthPrivateKey(): Promise<string> {
       {
         type: 'list',
         name: 'action',
-        message: 'A wallet already exists. What would you like to do?',
+        message: 'An auth wallet already exists. What would you like to do?',
         choices: [
           { name: 'Use existing wallet', value: 'use' },
           { name: 'Create new wallet (will overwrite existing)', value: 'new' },

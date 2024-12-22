@@ -2,8 +2,9 @@ import { Command } from 'commander';
 import inquirer from 'inquirer';
 import { AgentSigner } from '@lit-protocol/agent-signer';
 
-import { getAuthPrivateKey } from './commands/get-auth-private-key';
+import { getAuthPrivateKey } from './get-auth-private-key';
 import { logger } from './utils/logger';
+import { storage } from './utils/storage';
 
 const program = new Command();
 
@@ -13,16 +14,18 @@ interface MenuChoice {
   handler: () => Promise<void>;
 }
 
+let agentSigner: AgentSigner | null = null;
+
 const menuChoices: MenuChoice[] = [
   {
-    name: 'Initialize Agent Wallet',
-    value: 'init-wallet',
+    name: 'Initialize Agent Auth Wallet',
+    value: 'init-auth-wallet',
     handler: async () => {
       try {
         const privateKey = await getAuthPrivateKey();
 
         try {
-          await AgentSigner.create(privateKey);
+          agentSigner = await AgentSigner.create(privateKey);
         } catch (error) {
           if (
             error instanceof Error &&
@@ -37,10 +40,38 @@ const menuChoices: MenuChoice[] = [
           throw error;
         }
 
-        logger.success('Wallet initialization completed successfully!');
+        logger.success(
+          'Agent Auth Wallet initialization completed successfully!'
+        );
       } catch (error) {
         logger.error('Error initializing wallet: ' + error);
       }
+    },
+  },
+  {
+    name: 'Initialize Agent Wallet',
+    value: 'init-agent-wallet',
+    handler: async () => {
+      if (agentSigner === null) {
+        const existingWallet = storage.getWallet();
+        if (existingWallet === null) {
+          logger.error(
+            'No Agent Auth Wallet found. Please initialize an Agent Auth Wallet first.'
+          );
+          return;
+        }
+        agentSigner = await AgentSigner.create(existingWallet.privateKey);
+        const pkpInfo = await agentSigner.createWallet();
+        storage.storePkpInfo(pkpInfo.pkpInfo);
+        logger.success('Agent Wallet initialization completed successfully!');
+      }
+    },
+  },
+  {
+    name: 'Add Tools to Agent Wallet',
+    value: 'add-tools',
+    handler: async () => {
+      process.exit(0);
     },
   },
   {

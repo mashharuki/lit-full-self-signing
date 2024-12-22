@@ -1,5 +1,6 @@
 import { LocalStorage } from 'node-localstorage';
 import { existsSync, mkdirSync } from 'fs';
+import { PkpInfo } from '@lit-protocol/agent-signer/src/lib/types';
 
 // Initialize storage directory
 const STORAGE_DIR = './.agent-cli-storage';
@@ -17,25 +18,26 @@ export interface StoredWallet {
 }
 
 export const storage = {
-  /**
-   * Store wallet information
-   */
   storeWallet(wallet: StoredWallet) {
     localStorage.setItem('wallet', JSON.stringify(wallet));
   },
 
-  /**
-   * Retrieve stored wallet information
-   */
   getWallet(): StoredWallet | null {
     const data = localStorage.getItem('wallet');
     if (!data) return null;
     return JSON.parse(data);
   },
 
-  /**
-   * Clear all stored data
-   */
+  storePkpInfo(pkpInfo: PkpInfo) {
+    localStorage.setItem('pkpInfo', JSON.stringify(pkpInfo));
+  },
+
+  getPkpInfo(): PkpInfo | null {
+    const data = localStorage.getItem('pkpInfo');
+    if (!data) return null;
+    return JSON.parse(data);
+  },
+
   clear() {
     localStorage.clear();
   },
