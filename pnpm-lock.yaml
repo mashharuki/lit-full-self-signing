@@ -101,6 +101,9 @@ importers:
       '@lit-protocol/agent-signer':
         specifier: workspace:*
         version: link:../agent-signer
+      '@lit-protocol/agent-tool-registry':
+        specifier: workspace:*
+        version: link:../agent-tool-registry
       commander:
         specifier: ^12.1.0
         version: 12.1.0

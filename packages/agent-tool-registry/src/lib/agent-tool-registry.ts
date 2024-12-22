@@ -15,7 +15,7 @@ export const SendERC20 = {
   description: sendERC20LitActionDescription,
 
   Parameters: {
-    type: {} as SendERC20LitActionParameters, // for type inference
+    type: {} as SendERC20LitActionParameters,
     schema: SendERC20LitActionSchema,
     descriptions: SendERC20LitActionParameterDescriptions,
     validate: isValidSendERC20Parameters,
@@ -24,14 +24,13 @@ export const SendERC20 = {
   metadata: SendERC20LitActionMetadata,
 
   Policy: {
-    type: {} as SendERC20Policy, // for type inference
+    type: {} as SendERC20Policy,
     schema: SendERC20PolicySchema,
     encode: encodeSendERC20Policy,
     decode: decodeSendERC20Policy,
   },
 } as const;
 
-// Registry functionality
 export const SUPPORTED_TOOLS = ['SendERC20'] as const;
 export type SupportedToolTypes = (typeof SUPPORTED_TOOLS)[number];
 
@@ -48,11 +47,11 @@ export function listAvailableTools(): ToolInfo[] {
   return [
     {
       name: 'SendERC20',
-      description: SendERC20.description,
+      description: SendERC20.description as string,
       parameters: Object.entries(SendERC20.Parameters.descriptions).map(
         ([name, description]) => ({
           name,
-          description,
+          description: description as string,
         })
       ),
     },

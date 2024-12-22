@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "dependencies": {
     "@lit-protocol/agent-signer": "workspace:*",
+    "@lit-protocol/agent-tool-registry": "workspace:*",
     "commander": "^12.1.0",
     "ethers": "catalog:",
     "inquirer": "^12.3.0",

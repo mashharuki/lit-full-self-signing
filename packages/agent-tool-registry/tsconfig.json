@@ -4,6 +4,12 @@
   "include": [],
   "references": [
     {
+      "path": "../agent-toolkit"
+    },
+    {
+      "path": "../agent-tool-erc20-send"
+    },
+    {
       "path": "./tsconfig.lib.json"
     },
     {
