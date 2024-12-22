@@ -11,10 +11,7 @@
     "declarationMap": true,
     "types": ["node"],
     "moduleResolution": "node",
-    "module": "commonjs",
-    "paths": {
-      "@lit-protocol/agent-toolkit": ["../agent-toolkit/src"]
-    }
+    "module": "commonjs"
   },
   "include": ["src/**/*.ts"],
   "references": [
