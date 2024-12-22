@@ -182,6 +182,15 @@ importers:
         specifier: ^2.7.0
         version: 2.7.0
 
+  packages/agent-tool-registry:
+    dependencies:
+      '@lit-protocol/agent-tool-erc20-send':
+        specifier: workspace:*
+        version: link:../agent-tool-erc20-send
+      tslib:
+        specifier: ^2.3.0
+        version: 2.8.1
+
   packages/agent-toolkit:
     dependencies:
       ethers:
