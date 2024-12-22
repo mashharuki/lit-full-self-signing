@@ -63,14 +63,6 @@ async function promptForPrivateKey(): Promise<string> {
   return privateKey;
 }
 
-function generateNewWallet(): { privateKey: string; address: string } {
-  const wallet = ethers.Wallet.createRandom();
-  return {
-    privateKey: wallet.privateKey,
-    address: wallet.address,
-  };
-}
-
 export async function getAuthPrivateKey(): Promise<string> {
   const existingWallet = storage.getWallet();
 
@@ -88,7 +80,7 @@ export async function getAuthPrivateKey(): Promise<string> {
     'You need a private key with Lit test tokens to mint the agent wallet.'
   );
   logger.info(
-    'You can either provide your own private key or have a new wallet generated.'
+    'You can either provide your own private key or have a new wallet generated for you.'
   );
 
   const choice = await promptForWalletChoice();
@@ -100,16 +92,15 @@ export async function getAuthPrivateKey(): Promise<string> {
     const wallet = new ethers.Wallet(privateKey);
     address = wallet.address;
   } else {
-    const wallet = generateNewWallet();
+    const wallet = ethers.Wallet.createRandom();
     privateKey = wallet.privateKey;
     address = wallet.address;
 
     logger.success('New wallet generated!');
     logger.info(`Address: ${address}`);
     logger.warn(
-      'IMPORTANT: This private key will be stored in your local storage, but make sure to back it up!'
+      'IMPORTANT: This private key will be stored in local storage, but make sure to back it up!'
     );
-    logger.info(`Private Key: ${privateKey}`);
   }
 
   // Store the wallet information
