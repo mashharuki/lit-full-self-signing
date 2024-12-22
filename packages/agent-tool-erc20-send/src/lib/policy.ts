@@ -1,14 +1,16 @@
 import {
-  BaseLitActionPolicy,
+  BaseAgentToolPolicy,
   BaseLitActionPolicySchema,
   BaseEthereumAddressSchema,
+  EthereumAddress,
   registerPolicy,
 } from '@lit-protocol/agent-toolkit';
 import { z } from 'zod';
 
 // --- SendERC20 Policy Implementation ---
-export interface SendERC20Policy extends BaseLitActionPolicy {
+export interface SendERC20Policy extends BaseAgentToolPolicy {
   type: 'SendERC20';
+  version: string;
   maxAmount: string;
   allowedTokens: EthereumAddress[];
   allowedRecipients: EthereumAddress[];

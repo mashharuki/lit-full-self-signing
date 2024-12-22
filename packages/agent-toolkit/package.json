@@ -2,14 +2,21 @@
   "name": "@lit-protocol/agent-toolkit",
   "version": "0.1.0",
   "dependencies": {
-    "@swc/helpers": "~0.5.11",
     "ethers": "catalog:",
     "openai": "^4.77.0",
     "zod": "^3.24.1"
   },
   "type": "commonjs",
-  "main": "./dist/index.js",
-  "typings": "./dist/index.d.ts",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "typings": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "require": "./dist/src/index.js",
+      "default": "./dist/src/index.js"
+    }
+  },
   "files": [
     "dist",
     "!**/*.tsbuildinfo"
