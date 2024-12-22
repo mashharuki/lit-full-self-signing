@@ -17,6 +17,9 @@
     },
     {
       "path": "./packages/agent-registry"
+    },
+    {
+      "path": "./packages/agent-tool-registry"
     }
   ]
 }
