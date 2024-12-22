@@ -32,12 +32,12 @@
     "verbatimModuleSyntax": false,
     "baseUrl": ".",
     "paths": {
-      "@lit-protocol/agent-toolkit": ["./packages/agent-toolkit/src"],
-      "@lit-protocol/agent-toolkit/*": ["./packages/agent-toolkit/src/*"],
       "@lit-protocol/agent-signer": ["./packages/agent-signer/src"],
       "@lit-protocol/agent-tool-erc20-send": [
         "./packages/agent-tool-erc20-send/src"
-      ]
+      ],
+      "@lit-protocol/agent-toolkit": ["./packages/agent-toolkit/src"],
+      "@lit-protocol/agent-toolkit/*": ["./packages/agent-toolkit/src/*"]
     }
   }
 }

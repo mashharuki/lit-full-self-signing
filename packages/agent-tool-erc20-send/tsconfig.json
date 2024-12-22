@@ -4,6 +4,9 @@
   "include": [],
   "references": [
     {
+      "path": "../agent-toolkit"
+    },
+    {
       "path": "./tsconfig.lib.json"
     },
     {
