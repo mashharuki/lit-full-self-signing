@@ -8,7 +8,6 @@ import {
 import { LIT_NETWORK } from '@lit-protocol/constants';
 import { LitNodeClientNodeJs } from '@lit-protocol/lit-node-client-nodejs';
 import { ethers } from 'ethers';
-
 import type {
   AuthSig,
   ExecuteJsResponse,
@@ -16,9 +15,10 @@ import type {
   MintWithAuthResponse,
   SigResponse,
 } from '@lit-protocol/types';
-
 import { generateAuthSig } from '@lit-protocol/auth-helpers';
 import { createSiweMessage } from '@lit-protocol/auth-helpers';
+import { LitActionResource, LitPKPResource } from '@lit-protocol/auth-helpers';
+
 import { localStorage } from './localstorage';
 import {
   CapacityCreditDelegationAuthSigOptions,
@@ -27,7 +27,6 @@ import {
   PkpInfo,
   PkpSessionSigsOptions,
 } from './types';
-import { LitActionResource, LitPKPResource } from '@lit-protocol/auth-helpers';
 
 export class AgentSigner {
   private litNodeClient: LitNodeClientNodeJs | null = null;

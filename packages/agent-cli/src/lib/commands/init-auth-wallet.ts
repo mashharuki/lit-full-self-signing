@@ -1,11 +1,11 @@
 import { AgentSigner } from '@lit-protocol/agent-signer';
-import { WalletManager } from '../wallet-manager';
+
+import { getAuthPrivateKey } from '../wallet';
 import { logger } from '../utils/logger';
 
 export async function initAuthWallet(): Promise<AgentSigner | null> {
   try {
-    const walletManager = new WalletManager();
-    const privateKey = await walletManager.getAuthPrivateKey();
+    const privateKey = await getAuthPrivateKey();
 
     try {
       const signer = await AgentSigner.create(privateKey);
