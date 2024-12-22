@@ -7,6 +7,9 @@
     "tslib": "^2.6.2",
     "zod": "^3.24.1"
   },
+  "devDependencies": {
+    "esbuild": "^0.19.11"
+  },
   "type": "commonjs",
   "main": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
@@ -32,6 +35,20 @@
             "packages/agent-tool-erc20-send/*.md"
           ]
         }
+      },
+      "build:action": {
+        "executor": "nx:run-commands",
+        "options": {
+          "commands": [
+            "mkdir -p artifacts",
+            "node tools/scripts/build-lit-action.js"
+          ],
+          "cwd": "packages/agent-tool-erc20-send",
+          "parallel": false
+        },
+        "outputs": [
+          "{workspaceRoot}/packages/agent-tool-erc20-send/artifacts"
+        ]
       }
     },
     "name": "agent-tool-erc20-send"
