@@ -4,10 +4,10 @@ const path = require('path');
 
 async function main() {
   try {
-    // Ensure artifacts directory exists
-    const artifactsDir = path.join(__dirname, '../../artifacts');
-    if (!fs.existsSync(artifactsDir)) {
-      fs.mkdirSync(artifactsDir, { recursive: true });
+    // Ensure dist directory exists
+    const distDir = path.join(__dirname, '../../dist');
+    if (!fs.existsSync(distDir)) {
+      fs.mkdirSync(distDir, { recursive: true });
     }
 
     // Build the action file
@@ -46,12 +46,12 @@ async function main() {
 
     // Write to output file
     fs.writeFileSync(
-      path.join(artifactsDir, 'lit-action.js'),
+      path.join(distDir, 'deployed-lit-action.js'),
       finalCode,
       'utf8'
     );
 
-    console.log('Successfully built lit-action.js');
+    console.log('Successfully built deployed-lit-action.js');
   } catch (error) {
     console.error('Error building lit-action:', error);
     process.exit(1);

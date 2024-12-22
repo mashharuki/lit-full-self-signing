@@ -39,16 +39,18 @@
       },
       "build:action": {
         "executor": "nx:run-commands",
+        "dependsOn": [
+          "build"
+        ],
         "options": {
           "commands": [
-            "mkdir -p artifacts",
             "node tools/scripts/build-lit-action.js"
           ],
           "cwd": "packages/agent-tool-erc20-send",
           "parallel": false
         },
         "outputs": [
-          "{workspaceRoot}/packages/agent-tool-erc20-send/artifacts"
+          "{workspaceRoot}/packages/agent-tool-erc20-send/dist/deployed-lit-action.js"
         ]
       },
       "deploy": {

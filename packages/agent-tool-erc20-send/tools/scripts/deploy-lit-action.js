@@ -84,7 +84,7 @@ async function main() {
 
   try {
     // Read the action string
-    const litActionPath = join(rootDir, 'artifacts', 'lit-action.js');
+    const litActionPath = join(rootDir, 'dist', 'deployed-lit-action.js');
     console.log('Reading from:', litActionPath);
     const actionString = await fs.readFile(litActionPath, 'utf-8');
 
