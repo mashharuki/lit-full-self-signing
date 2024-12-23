@@ -6,6 +6,26 @@ import {
 import { AUTH_METHOD_SCOPE } from '@lit-protocol/constants';
 import { OpenAI } from 'openai';
 
+export enum LitAgentErrorType {
+  INITIALIZATION_FAILED = 'INITIALIZATION_FAILED',
+  INSUFFICIENT_BALANCE = 'INSUFFICIENT_BALANCE',
+  WALLET_CREATION_FAILED = 'WALLET_CREATION_FAILED',
+  TOOL_PERMISSION_FAILED = 'TOOL_PERMISSION_FAILED',
+  TOOL_EXECUTION_FAILED = 'TOOL_EXECUTION_FAILED',
+  INVALID_PARAMETERS = 'INVALID_PARAMETERS',
+}
+
+export class LitAgentError extends Error {
+  constructor(
+    public type: LitAgentErrorType,
+    message: string,
+    public details?: any
+  ) {
+    super(message);
+    this.name = 'LitAgentError';
+  }
+}
+
 export class LitAgent {
   private signer!: AgentSigner;
   private openai: OpenAI;
@@ -23,17 +43,49 @@ export class LitAgent {
   }
 
   public async init(): Promise<void> {
-    // Initialize the signer
-    this.signer = await AgentSigner.create(this.litAuthPrivateKey);
+    try {
+      // Initialize the signer
+      this.signer = await AgentSigner.create(this.litAuthPrivateKey);
 
-    // Check for existing wallet and create if needed
-    if (!(await this.hasExistingAgentWallet())) {
-      await this.createAgentWallet();
+      // Check for existing wallet and create if needed
+      if (!(await this.hasExistingAgentWallet())) {
+        await this.createAgentWallet();
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message.includes('Insufficient balance')) {
+          throw new LitAgentError(
+            LitAgentErrorType.INSUFFICIENT_BALANCE,
+            'Insufficient balance to create agent wallet',
+            { originalError: error }
+          );
+        }
+        if (error.message.includes('Failed to create wallet')) {
+          throw new LitAgentError(
+            LitAgentErrorType.WALLET_CREATION_FAILED,
+            'Failed to create agent wallet',
+            { originalError: error }
+          );
+        }
+      }
+      throw new LitAgentError(
+        LitAgentErrorType.INITIALIZATION_FAILED,
+        'Failed to initialize LitAgent',
+        { originalError: error }
+      );
     }
   }
 
   private async createAgentWallet(): Promise<void> {
-    await this.signer.createWallet();
+    try {
+      await this.signer.createWallet();
+    } catch (error) {
+      throw new LitAgentError(
+        LitAgentErrorType.WALLET_CREATION_FAILED,
+        'Failed to create agent wallet',
+        { originalError: error }
+      );
+    }
   }
 
   private async hasExistingAgentWallet(): Promise<boolean> {
@@ -41,20 +93,36 @@ export class LitAgent {
   }
 
   public async permitTool(ipfsCid: string): Promise<void> {
-    await this.signer.pkpPermitLitAction({
-      ipfsCid,
-      signingScopes: [AUTH_METHOD_SCOPE.SignAnything],
-    });
+    try {
+      await this.signer.pkpPermitLitAction({
+        ipfsCid,
+        signingScopes: [AUTH_METHOD_SCOPE.SignAnything],
+      });
+    } catch (error) {
+      throw new LitAgentError(
+        LitAgentErrorType.TOOL_PERMISSION_FAILED,
+        'Failed to permit tool',
+        { ipfsCid, originalError: error }
+      );
+    }
   }
 
   public async executeTool(
     ipfsCid: string,
     params: Record<string, string>
   ): Promise<any> {
-    return this.signer.executeJs({
-      ipfsId: ipfsCid,
-      jsParams: params,
-    });
+    try {
+      return await this.signer.executeJs({
+        ipfsId: ipfsCid,
+        jsParams: params,
+      });
+    } catch (error) {
+      throw new LitAgentError(
+        LitAgentErrorType.TOOL_EXECUTION_FAILED,
+        'Failed to execute tool',
+        { ipfsCid, params, originalError: error }
+      );
+    }
   }
 
   private generateToolMatchingPrompt(tools: ToolInfo[]): string {

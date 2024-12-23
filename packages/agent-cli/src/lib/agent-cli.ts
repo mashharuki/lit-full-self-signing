@@ -1,4 +1,8 @@
-import { LitAgent } from '@lit-protocol/agent';
+import {
+  LitAgent,
+  LitAgentError,
+  LitAgentErrorType,
+} from '@lit-protocol/agent';
 
 import { logger } from './utils/logger';
 import { storage } from './utils/storage';
@@ -26,25 +30,37 @@ export class AgentCLI {
       await this.litAgent.init();
       logger.success('Successfully initialized Lit Agent');
     } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message.includes('Insufficient balance')
-      ) {
-        const authWallet = storage.getWallet();
-        if (!authWallet) throw error;
+      if (error instanceof LitAgentError) {
+        switch (error.type) {
+          case LitAgentErrorType.INSUFFICIENT_BALANCE: {
+            const authWallet = storage.getWallet();
+            if (!authWallet) throw error;
 
-        logger.error(
-          'Your Auth Wallet does not have enough Lit test tokens to mint the Agent Wallet.'
-        );
-        logger.info(
-          `Please send Lit test tokens to your Auth Wallet: ${authWallet.address} before continuing.`
-        );
-        logger.log(
-          'You can get test tokens from the following faucet: https://chronicle-yellowstone-faucet.getlit.dev/'
-        );
-        process.exit(1);
+            logger.error(
+              'Your Auth Wallet does not have enough Lit test tokens to mint the Agent Wallet.'
+            );
+            logger.info(
+              `Please send Lit test tokens to your Auth Wallet: ${authWallet.address} before continuing.`
+            );
+            logger.log(
+              'You can get test tokens from the following faucet: https://chronicle-yellowstone-faucet.getlit.dev/'
+            );
+            process.exit(1);
+            break;
+          }
+          case LitAgentErrorType.WALLET_CREATION_FAILED: {
+            logger.error(`Failed to create agent wallet: ${error.message}`);
+            process.exit(1);
+            break;
+          }
+          default: {
+            logger.error(`Failed to initialize Lit Agent: ${error.message}`);
+            process.exit(1);
+            break;
+          }
+        }
       }
-      logger.error('Failed to initialize Lit Agent: ' + error);
+      logger.error(`Unexpected error: ${error}`);
       process.exit(1);
     }
   }
@@ -82,7 +98,14 @@ export class AgentCLI {
             `Successfully permitted tool: ${result.matchedTool.name}`
           );
         } catch (error) {
-          logger.error(`Failed to permit tool: ${error}`);
+          if (
+            error instanceof LitAgentError &&
+            error.type === LitAgentErrorType.TOOL_PERMISSION_FAILED
+          ) {
+            logger.error(`Failed to permit tool: ${error.message}`);
+          } else {
+            logger.error(`Unexpected error while permitting tool: ${error}`);
+          }
           continue;
         }
       }
@@ -103,7 +126,20 @@ export class AgentCLI {
         logger.success('Tool execution completed');
         logger.log(`Result: ${JSON.stringify(executionResult, null, 2)}`);
       } catch (error) {
-        logger.error(`Operation failed: ${error}`);
+        if (error instanceof LitAgentError) {
+          switch (error.type) {
+            case LitAgentErrorType.TOOL_EXECUTION_FAILED:
+              logger.error(`Tool execution failed: ${error.message}`);
+              break;
+            case LitAgentErrorType.INVALID_PARAMETERS:
+              logger.error(`Invalid parameters: ${error.message}`);
+              break;
+            default:
+              logger.error(`Operation failed: ${error.message}`);
+          }
+        } else {
+          logger.error(`Unexpected error: ${error}`);
+        }
         continue;
       }
     }
