@@ -27,6 +27,38 @@ async function selectTool(tools: PermittedTool[]): Promise<PermittedTool> {
   return answer.tool;
 }
 
+async function collectParameters(
+  tool: PermittedTool
+): Promise<Record<string, string>> {
+  if (tool.name === 'Unknown Tool' || tool.parameters.length === 0) {
+    logger.warn('No parameters defined for this tool');
+    return {};
+  }
+
+  const parameters: Record<string, string> = {};
+
+  // Collect each parameter one at a time to avoid type issues
+  for (const param of tool.parameters) {
+    const { value } = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'value',
+        message: `Enter ${param.name} (${param.description}):`,
+        validate: (input: string) => {
+          if (!input.trim()) {
+            return `${param.name} is required`;
+          }
+          return true;
+        },
+      },
+    ]);
+
+    parameters[param.name] = value;
+  }
+
+  return parameters;
+}
+
 export async function executeTool(agentSigner: AgentSigner): Promise<void> {
   logger.info('Fetching available tools...');
 
@@ -54,6 +86,13 @@ export async function executeTool(agentSigner: AgentSigner): Promise<void> {
     } else {
       logger.success(`Selected tool: ${selectedTool.name}`);
       logger.info(`Description: ${selectedTool.description}`);
+
+      // Collect parameters for the tool
+      const parameters = await collectParameters(selectedTool);
+      logger.info('Collected parameters:');
+      Object.entries(parameters).forEach(([key, value]) => {
+        logger.log(`  ${key}: ${value}`);
+      });
     }
 
     // TODO: Implement tool execution logic
