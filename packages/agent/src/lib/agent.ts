@@ -1,18 +1,54 @@
-import type { AgentSigner } from '@lit-protocol/agent-signer';
+import { AgentSigner } from '@lit-protocol/agent-signer/dist/src/lib/agent-signer';
 import {
   listAvailableTools,
   type ToolInfo,
 } from '@lit-protocol/agent-tool-registry';
+import { AUTH_METHOD_SCOPE } from '@lit-protocol/constants';
 import { OpenAI } from 'openai';
 
 export class LitAgent {
-  private signer: AgentSigner;
+  private signer!: AgentSigner;
   private openai: OpenAI;
-  private readonly openAiModel = 'gpt-4o-mini';
+  private readonly openAiModel: string;
+  private readonly litAuthPrivateKey: string;
 
-  constructor(signer: AgentSigner, openAiApiKey: string) {
-    this.signer = signer;
+  constructor(
+    litAuthPrivateKey: string,
+    openAiApiKey: string,
+    openAiModel = 'gpt-4o-mini'
+  ) {
+    this.litAuthPrivateKey = litAuthPrivateKey;
     this.openai = new OpenAI({ apiKey: openAiApiKey });
+    this.openAiModel = openAiModel;
+  }
+
+  public async init(): Promise<void> {
+    this.signer = await AgentSigner.create(this.litAuthPrivateKey);
+  }
+
+  public async createAgentWallet(): Promise<void> {
+    await this.signer.createWallet();
+  }
+
+  public async hasExistingAgentWallet(): Promise<boolean> {
+    return !!AgentSigner.getPkpInfoFromStorage();
+  }
+
+  public async permitTool(ipfsCid: string): Promise<void> {
+    await this.signer.pkpPermitLitAction({
+      ipfsCid,
+      signingScopes: [AUTH_METHOD_SCOPE.SignAnything],
+    });
+  }
+
+  public async executeTool(
+    ipfsCid: string,
+    params: Record<string, string>
+  ): Promise<any> {
+    return this.signer.executeJs({
+      ipfsId: ipfsCid,
+      jsParams: params,
+    });
   }
 
   private generateToolMatchingPrompt(tools: ToolInfo[]): string {
