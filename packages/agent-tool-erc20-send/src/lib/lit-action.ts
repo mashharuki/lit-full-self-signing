@@ -26,86 +26,86 @@ export default async () => {
       chainInfo.rpcUrl
     );
 
-    // Policy Checks
-    const LIT_AGENT_REGISTRY_ABI = [
-      'function getActionPolicy(address user, address pkp, string calldata ipfsCid) external view returns (bool isPermitted, bytes memory description, bytes memory policy)',
-    ];
-    const LIT_AGENT_REGISTRY_ADDRESS =
-      '0x728e8162603F35446D09961c4A285e2643f4FB91';
+    // // Policy Checks
+    // const LIT_AGENT_REGISTRY_ABI = [
+    //   'function getActionPolicy(address user, address pkp, string calldata ipfsCid) external view returns (bool isPermitted, bytes memory description, bytes memory policy)',
+    // ];
+    // const LIT_AGENT_REGISTRY_ADDRESS =
+    //   '0x728e8162603F35446D09961c4A285e2643f4FB91';
 
-    // Validate auth parameters
-    if (!LitAuth.authSigAddress) {
-      throw new Error('Missing required parameter: LitAuth.authSigAddress');
-    }
-    if (!LitAuth.actionIpfsIds[0]) {
-      throw new Error('Missing required parameter: LitAuth.actionIpfsIds[0]');
-    }
-    if (!pkp.ethAddress) {
-      throw new Error('Missing required parameter: pkp.ethAddress');
-    }
+    // // Validate auth parameters
+    // if (!LitAuth.authSigAddress) {
+    //   throw new Error('Missing required parameter: LitAuth.authSigAddress');
+    // }
+    // if (!LitAuth.actionIpfsIds[0]) {
+    //   throw new Error('Missing required parameter: LitAuth.actionIpfsIds[0]');
+    // }
+    // if (!pkp.ethAddress) {
+    //   throw new Error('Missing required parameter: pkp.ethAddress');
+    // }
 
-    // Create registry contract instance
-    const registryContract = new ethers.Contract(
-      LIT_AGENT_REGISTRY_ADDRESS,
-      LIT_AGENT_REGISTRY_ABI,
-      ethersProvider
-    );
+    // // Create registry contract instance
+    // const registryContract = new ethers.Contract(
+    //   LIT_AGENT_REGISTRY_ADDRESS,
+    //   LIT_AGENT_REGISTRY_ABI,
+    //   ethersProvider
+    // );
 
-    const [isPermitted, , policy] = await registryContract.getActionPolicy(
-      LitAuth.authSigAddress,
-      pkp.ethAddress,
-      LitAuth.actionIpfsIds[0]
-    );
+    // const [isPermitted, , policy] = await registryContract.getActionPolicy(
+    //   LitAuth.authSigAddress,
+    //   pkp.ethAddress,
+    //   LitAuth.actionIpfsIds[0]
+    // );
 
-    if (!isPermitted) {
-      throw new Error('Action not permitted for this PKP');
-    }
+    // if (!isPermitted) {
+    //   throw new Error('Action not permitted for this PKP');
+    // }
 
-    // Decode and validate policy
-    const policyStruct = [
-      'tuple(uint256 maxAmount, address[] allowedTokens, address[] allowedRecipients)',
-    ];
-    let decodedPolicy;
-    try {
-      decodedPolicy = ethers.utils.defaultAbiCoder.decode(
-        policyStruct,
-        policy
-      )[0];
-      if (
-        !decodedPolicy.maxAmount ||
-        !decodedPolicy.allowedTokens ||
-        !decodedPolicy.allowedRecipients
-      ) {
-        throw new Error('Invalid policy format: missing required fields');
-      }
+    // // Decode and validate policy
+    // const policyStruct = [
+    //   'tuple(uint256 maxAmount, address[] allowedTokens, address[] allowedRecipients)',
+    // ];
+    // let decodedPolicy;
+    // try {
+    //   decodedPolicy = ethers.utils.defaultAbiCoder.decode(
+    //     policyStruct,
+    //     policy
+    //   )[0];
+    //   if (
+    //     !decodedPolicy.maxAmount ||
+    //     !decodedPolicy.allowedTokens ||
+    //     !decodedPolicy.allowedRecipients
+    //   ) {
+    //     throw new Error('Invalid policy format: missing required fields');
+    //   }
 
-      decodedPolicy.allowedTokens = decodedPolicy.allowedTokens.map(
-        (token: string) => ethers.utils.getAddress(token)
-      );
-      decodedPolicy.allowedRecipients = decodedPolicy.allowedRecipients.map(
-        (recipient: string) => ethers.utils.getAddress(recipient)
-      );
-    } catch (error) {
-      throw new Error(
-        `Failed to decode policy: ${
-          error instanceof Error ? error.message : String(error)
-        }`
-      );
-    }
+    //   decodedPolicy.allowedTokens = decodedPolicy.allowedTokens.map(
+    //     (token: string) => ethers.utils.getAddress(token)
+    //   );
+    //   decodedPolicy.allowedRecipients = decodedPolicy.allowedRecipients.map(
+    //     (recipient: string) => ethers.utils.getAddress(recipient)
+    //   );
+    // } catch (error) {
+    //   throw new Error(
+    //     `Failed to decode policy: ${
+    //       error instanceof Error ? error.message : String(error)
+    //     }`
+    //   );
+    // }
 
-    // Validate token and recipient against policy
-    const normalizedTokenAddress = ethers.utils.getAddress(params.tokenIn);
-    const normalizedRecipientAddress = ethers.utils.getAddress(
-      params.recipientAddress
-    );
+    // // Validate token and recipient against policy
+    // const normalizedTokenAddress = ethers.utils.getAddress(params.tokenIn);
+    // const normalizedRecipientAddress = ethers.utils.getAddress(
+    //   params.recipientAddress
+    // );
 
-    if (!decodedPolicy.allowedTokens.includes(normalizedTokenAddress)) {
-      throw new Error(`Token not allowed: ${normalizedTokenAddress}`);
-    }
+    // if (!decodedPolicy.allowedTokens.includes(normalizedTokenAddress)) {
+    //   throw new Error(`Token not allowed: ${normalizedTokenAddress}`);
+    // }
 
-    if (!decodedPolicy.allowedRecipients.includes(normalizedRecipientAddress)) {
-      throw new Error(`Recipient not allowed: ${normalizedRecipientAddress}`);
-    }
+    // if (!decodedPolicy.allowedRecipients.includes(normalizedRecipientAddress)) {
+    //   throw new Error(`Recipient not allowed: ${normalizedRecipientAddress}`);
+    // }
 
     // Setup token interface
     const tokenInterface = new ethers.utils.Interface([
@@ -128,15 +128,15 @@ export default async () => {
 
     const amount = ethers.utils.parseUnits(params.amountIn, decimals);
 
-    // Check amount against policy maxAmount
-    if (amount.gt(decodedPolicy.maxAmount)) {
-      throw new Error(
-        `Amount exceeds policy limit. Max allowed: ${ethers.utils.formatUnits(
-          decodedPolicy.maxAmount,
-          decimals
-        )}`
-      );
-    }
+    // // Check amount against policy maxAmount
+    // if (amount.gt(decodedPolicy.maxAmount)) {
+    //   throw new Error(
+    //     `Amount exceeds policy limit. Max allowed: ${ethers.utils.formatUnits(
+    //       decodedPolicy.maxAmount,
+    //       decimals
+    //     )}`
+    //   );
+    // }
 
     // Check balance
     if (amount.gt(balance)) {

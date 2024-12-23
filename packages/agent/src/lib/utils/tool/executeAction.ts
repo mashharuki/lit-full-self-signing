@@ -7,9 +7,28 @@ export async function executeAction(
   params: Record<string, string>
 ): Promise<any> {
   try {
+    const pkpInfo = AgentSigner.getPkpInfoFromStorage();
+    if (!pkpInfo) {
+      throw new LitAgentError(
+        LitAgentErrorType.TOOL_EXECUTION_FAILED,
+        'No PKP info found',
+        { ipfsCid }
+      );
+    }
+
     return await signer.executeJs({
       ipfsId: ipfsCid,
-      jsParams: params,
+      jsParams: {
+        chainInfo: {
+          rpcUrl: 'https://base-sepolia-rpc.publicnode.com',
+          chainId: 84532,
+        },
+        pkp: {
+          ethAddress: pkpInfo.ethAddress,
+          publicKey: pkpInfo.publicKey,
+        },
+        params,
+      },
     });
   } catch (error) {
     throw new LitAgentError(
