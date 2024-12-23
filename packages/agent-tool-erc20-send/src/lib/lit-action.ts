@@ -21,15 +21,13 @@ declare global {
   };
 
   // Required Inputs
-  const chainInfo: {
-    rpcUrl: string;
-    chainId: number;
-  };
   const pkp: {
     ethAddress: string;
     publicKey: string;
   };
   const params: {
+    rpcUrl: string;
+    chainId: number;
     tokenIn: string;
     recipientAddress: string;
     amountIn: string;
@@ -75,9 +73,7 @@ export default async () => {
       const gasData = await Lit.Actions.runOnce(
         { waitForResponse: true, name: 'gasPriceGetter' },
         async () => {
-          const provider = new ethers.providers.JsonRpcProvider(
-            chainInfo.rpcUrl
-          );
+          const provider = new ethers.providers.JsonRpcProvider(params.rpcUrl);
           const baseFeeHistory = await provider.send('eth_feeHistory', [
             '0x1',
             'latest',
@@ -150,7 +146,7 @@ export default async () => {
         maxFeePerGas: gasData.maxFeePerGas,
         maxPriorityFeePerGas: gasData.maxPriorityFeePerGas,
         nonce: gasData.nonce,
-        chainId: chainInfo.chainId,
+        chainId: params.chainId,
         type: 2,
       };
 
@@ -180,7 +176,7 @@ export default async () => {
         async () => {
           try {
             const provider = new ethers.providers.JsonRpcProvider(
-              chainInfo.rpcUrl
+              params.rpcUrl
             );
             const tx = await provider.sendTransaction(signedTx);
             console.log('Transaction sent:', tx.hash);
@@ -224,7 +220,7 @@ export default async () => {
     }
 
     // Main Execution
-    const provider = new ethers.providers.JsonRpcProvider(chainInfo.rpcUrl);
+    const provider = new ethers.providers.JsonRpcProvider(params.rpcUrl);
     const tokenInfo = await getTokenInfo(provider);
     const gasData = await getGasData();
     const gasLimit = await estimateGasLimit(provider, tokenInfo.amount);

@@ -14,11 +14,23 @@ export async function collectMissingParams(
 ): Promise<Record<string, any>> {
   while (true) {
     const allParams = { ...params.foundParams };
+    let chainConfig = null;
 
     if (params.missingParams.length > 0) {
       logger.warn('Some parameters are missing. Please provide them:');
 
       for (const paramName of params.missingParams) {
+        // Check if the parameter is chain related
+        if (paramName === 'rpcUrl' || paramName === 'chainId') {
+          if (!chainConfig) {
+            chainConfig = await promptForChainConfig();
+            // Add chain config parameters to allParams
+            allParams['rpcUrl'] = chainConfig.rpcUrl;
+            allParams['chainId'] = chainConfig.chainId.toString();
+          }
+          continue;
+        }
+
         const paramInfo = tool.parameters.find((p) => p.name === paramName);
         if (!paramInfo) {
           throw new Error(`Unknown parameter: ${paramName}`);
@@ -42,17 +54,11 @@ export async function collectMissingParams(
       }
     }
 
-    // Get chain configuration
-    const chainConfig = await promptForChainConfig();
-
     // Show all parameters for confirmation
     logger.info('Parameters to be used:');
     Object.entries(allParams).forEach(([key, value]) => {
       logger.log(`  ${key}: ${value}`);
     });
-    logger.log('Chain configuration:');
-    logger.log(`  RPC URL: ${chainConfig.rpcUrl}`);
-    logger.log(`  Chain ID: ${chainConfig.chainId}`);
 
     const { confirmed } = await inquirer.prompt([
       {
@@ -64,10 +70,14 @@ export async function collectMissingParams(
     ]);
 
     if (confirmed) {
-      return {
-        ...allParams,
-        chainInfo: chainConfig,
-      };
+      // If chainConfig was collected, include it in the special chainInfo field
+      if (chainConfig) {
+        return {
+          ...allParams,
+          chainInfo: chainConfig,
+        };
+      }
+      return allParams;
     }
 
     logger.info('Restarting parameter collection...');
