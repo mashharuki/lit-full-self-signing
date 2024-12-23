@@ -6,7 +6,7 @@ class Storage {
 
   constructor() {
     this.localStorage = new LocalStorage(
-      join(process.cwd(), '.lit-agent-storage')
+      join(process.cwd(), '.agent-cli-storage')
     );
   }
 
