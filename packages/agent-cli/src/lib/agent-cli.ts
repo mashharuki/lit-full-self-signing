@@ -84,20 +84,14 @@ export class AgentCLI {
         continue;
       }
 
-      // Collect any missing parameters
       try {
-        const allParams = await collectMissingParams(
-          result.matchedTool,
-          result.params
-        );
-
-        // Execute the tool
+        // Execute the tool with permission and parameter handling
         logger.info('Executing tool...');
-        const executionResult =
-          await this.litAgent.executeToolWithPermissionCheck(
-            result.matchedTool.ipfsCid,
-            allParams,
-            async (tool) => {
+        const executionResult = await this.litAgent.executeTool(
+          result.matchedTool.ipfsCid,
+          result.params.foundParams,
+          {
+            permissionCallback: async (tool) => {
               const shouldPermit = await promptForToolPermission(tool);
               if (!shouldPermit) {
                 logger.info(
@@ -105,18 +99,33 @@ export class AgentCLI {
                 );
               }
               return shouldPermit;
-            }
-          );
+            },
+            parameterCallback: async (tool, missingParams) => {
+              const allParams = await collectMissingParams(tool, {
+                foundParams: result.params.foundParams,
+                missingParams,
+              });
+              return allParams;
+            },
+          }
+        );
+
+        if (!executionResult.success) {
+          if (executionResult.reason) {
+            logger.info(executionResult.reason);
+          }
+          continue;
+        }
+
         logger.success('Tool execution completed');
-        logger.log(`Result: ${JSON.stringify(executionResult, null, 2)}`);
+        logger.log(
+          `Result: ${JSON.stringify(executionResult.result, null, 2)}`
+        );
       } catch (error) {
         if (error instanceof LitAgentError) {
           switch (error.type) {
             case LitAgentErrorType.TOOL_EXECUTION_FAILED:
               logger.error(`Tool execution failed: ${error.message}`);
-              break;
-            case LitAgentErrorType.TOOL_PERMISSION_FAILED:
-              // Permission denial is already handled in the callback
               break;
             case LitAgentErrorType.INVALID_PARAMETERS:
               logger.error(`Invalid parameters: ${error.message}`);
@@ -125,7 +134,11 @@ export class AgentCLI {
               logger.error(`Operation failed: ${error.message}`);
           }
         } else {
-          logger.error(`Unexpected error: ${error}`);
+          logger.error(
+            `Unexpected error: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
         }
         continue;
       }

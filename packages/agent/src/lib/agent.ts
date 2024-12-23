@@ -109,10 +109,17 @@ export class LitAgent {
 
   public async executeTool(
     ipfsCid: string,
-    params: Record<string, string>
-  ): Promise<any> {
+    initialParams: Record<string, string>,
+    options: {
+      permissionCallback?: (tool: ToolInfo) => Promise<boolean>;
+      parameterCallback?: (
+        tool: ToolInfo,
+        missingParams: string[]
+      ) => Promise<Record<string, string>>;
+    } = {}
+  ): Promise<{ success: boolean; result?: any; reason?: string }> {
     try {
-      // Find the tool info and check permission first
+      // Find the tool info first
       const tool = listAvailableTools().find((t) => t.ipfsCid === ipfsCid);
       if (!tool) {
         throw new LitAgentError(
@@ -122,19 +129,73 @@ export class LitAgent {
         );
       }
 
+      // Check if tool is permitted
       const isPermitted = await this.checkAgentWalletForPermittedTool(tool);
       if (!isPermitted) {
-        throw new LitAgentError(
-          LitAgentErrorType.TOOL_PERMISSION_FAILED,
-          'Tool is not permitted',
-          { ipfsCid }
-        );
+        if (options.permissionCallback) {
+          const shouldPermit = await options.permissionCallback(tool);
+          if (!shouldPermit) {
+            return {
+              success: false,
+              reason: 'Permission denied by user',
+            };
+          }
+          await this.permitTool(ipfsCid);
+        } else {
+          throw new LitAgentError(
+            LitAgentErrorType.TOOL_PERMISSION_FAILED,
+            'Tool is not permitted',
+            { ipfsCid }
+          );
+        }
       }
 
-      return await this.signer.executeJs({
+      // Validate and collect parameters
+      const requiredParams = new Set(tool.parameters.map((p) => p.name));
+      const missingParams = Array.from(requiredParams).filter(
+        (param) => !(param in initialParams)
+      );
+
+      let finalParams = { ...initialParams };
+
+      if (missingParams.length > 0) {
+        if (!options.parameterCallback) {
+          throw new LitAgentError(
+            LitAgentErrorType.INVALID_PARAMETERS,
+            'Missing required parameters and no parameter callback provided',
+            { missingParams }
+          );
+        }
+
+        const additionalParams = await options.parameterCallback(
+          tool,
+          missingParams
+        );
+        finalParams = { ...finalParams, ...additionalParams };
+
+        // Verify all required parameters are now present
+        const stillMissing = Array.from(requiredParams).filter(
+          (param) => !(param in finalParams)
+        );
+        if (stillMissing.length > 0) {
+          throw new LitAgentError(
+            LitAgentErrorType.INVALID_PARAMETERS,
+            'Required parameters still missing after collection',
+            { missingParams: stillMissing }
+          );
+        }
+      }
+
+      // Execute the tool
+      const result = await this.signer.executeJs({
         ipfsId: ipfsCid,
-        jsParams: params,
+        jsParams: finalParams,
       });
+
+      return {
+        success: true,
+        result,
+      };
     } catch (error) {
       if (error instanceof LitAgentError) {
         throw error;
@@ -142,50 +203,9 @@ export class LitAgent {
       throw new LitAgentError(
         LitAgentErrorType.TOOL_EXECUTION_FAILED,
         'Failed to execute tool',
-        { ipfsCid, params, originalError: error }
+        { ipfsCid, params: initialParams, originalError: error }
       );
     }
-  }
-
-  public async executeToolWithPermissionCheck(
-    ipfsCid: string,
-    params: Record<string, string>,
-    permissionCallback?: (tool: ToolInfo) => Promise<boolean>
-  ): Promise<any> {
-    // Find the tool info
-    const tool = listAvailableTools().find((t) => t.ipfsCid === ipfsCid);
-    if (!tool) {
-      throw new LitAgentError(
-        LitAgentErrorType.TOOL_EXECUTION_FAILED,
-        'Tool not found',
-        { ipfsCid }
-      );
-    }
-
-    // Check if tool is already permitted
-    const isPermitted = await this.checkAgentWalletForPermittedTool(tool);
-
-    // If not permitted and we have a callback, ask for permission
-    if (!isPermitted && permissionCallback) {
-      const shouldPermit = await permissionCallback(tool);
-      if (!shouldPermit) {
-        throw new LitAgentError(
-          LitAgentErrorType.TOOL_PERMISSION_FAILED,
-          'Tool permission denied by user',
-          { tool }
-        );
-      }
-      await this.permitTool(ipfsCid);
-    } else if (!isPermitted) {
-      throw new LitAgentError(
-        LitAgentErrorType.TOOL_PERMISSION_FAILED,
-        'Tool not permitted and no permission callback provided',
-        { tool }
-      );
-    }
-
-    // Execute the tool
-    return this.executeTool(ipfsCid, params);
   }
 
   private generateToolMatchingPrompt(tools: ToolInfo[]): string {
