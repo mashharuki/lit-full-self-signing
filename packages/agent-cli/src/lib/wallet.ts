@@ -74,8 +74,8 @@ export async function getAuthPrivateKey(): Promise<string> {
     }
   }
 
-  logger.prompt('\nWallet Initialization');
-  logger.prompt('--------------------');
+  logger.log('\nWallet Initialization');
+  logger.log('--------------------');
   logger.info(
     'You need a private key with Lit test tokens to mint the agent wallet.'
   );

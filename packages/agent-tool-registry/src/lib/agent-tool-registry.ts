@@ -9,11 +9,12 @@ import {
   SendERC20PolicySchema,
   encodeSendERC20Policy,
   decodeSendERC20Policy,
+  IPFS_CID as SendERC20IpfsCid,
 } from '@lit-protocol/agent-tool-erc20-send';
 
 export const SendERC20 = {
   description: sendERC20LitActionDescription,
-  ipfsCid: 'QmQwNvbP9YAY4B4wYgFoD6cNnX3udNDBjWC7RqN48GdpmN',
+  ipfsCid: SendERC20IpfsCid,
 
   Parameters: {
     type: {} as SendERC20LitActionParameters,

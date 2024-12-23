@@ -279,6 +279,16 @@ export class AgentSigner {
     });
   }
 
+  async pkpListPermittedActions() {
+    if (!this.ethersWallet || !this.pkp || !this.litContracts) {
+      throw new Error('Agent signer not properly initialized or PKP not set');
+    }
+
+    return this.litContracts.pkpPermissionsContractUtils.read.getPermittedActions(
+      this.pkp.tokenId
+    );
+  }
+
   async pkpSign({ toSign }: { toSign: string }): Promise<SigResponse> {
     if (!this.litNodeClient || !this.pkp) {
       throw new Error('Agent signer not properly initialized or PKP not set');

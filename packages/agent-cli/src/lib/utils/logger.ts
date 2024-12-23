@@ -1,6 +1,6 @@
 // Utility to handle CLI logging
 export const logger = {
-  prompt: (message: string) => {
+  log: (message: string) => {
     console.log(message);
   },
   info: (message: string) => {

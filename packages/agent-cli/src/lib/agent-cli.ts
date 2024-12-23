@@ -23,7 +23,7 @@ export class AgentCLI {
       .description('Interactive CLI for Lit Agent')
       .version('0.1.0')
       .action(async () => {
-        logger.prompt('Welcome to Lit Agent CLI');
+        logger.log('Welcome to Lit Agent CLI');
         await this.initialize();
         await showMainMenu(this);
       });
