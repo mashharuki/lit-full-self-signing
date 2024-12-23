@@ -23,14 +23,20 @@ export class LitAgent {
   }
 
   public async init(): Promise<void> {
+    // Initialize the signer
     this.signer = await AgentSigner.create(this.litAuthPrivateKey);
+
+    // Check for existing wallet and create if needed
+    if (!(await this.hasExistingAgentWallet())) {
+      await this.createAgentWallet();
+    }
   }
 
-  public async createAgentWallet(): Promise<void> {
+  private async createAgentWallet(): Promise<void> {
     await this.signer.createWallet();
   }
 
-  public async hasExistingAgentWallet(): Promise<boolean> {
+  private async hasExistingAgentWallet(): Promise<boolean> {
     return !!AgentSigner.getPkpInfoFromStorage();
   }
 

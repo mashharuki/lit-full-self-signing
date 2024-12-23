@@ -24,38 +24,26 @@ export class AgentCLI {
 
     try {
       await this.litAgent.init();
-
-      if (!(await this.litAgent.hasExistingAgentWallet())) {
-        logger.info('No agent wallet found. Initializing a new one...');
-        try {
-          await this.litAgent.createAgentWallet();
-          logger.success('Agent wallet initialized successfully!');
-        } catch (error) {
-          if (
-            error instanceof Error &&
-            error.message.includes('Insufficient balance')
-          ) {
-            const authWallet = storage.getWallet();
-            if (!authWallet) throw error;
-
-            logger.error(
-              'Your Auth Wallet does not have enough Lit test tokens to mint the Agent Wallet.'
-            );
-            logger.info(
-              `Please send Lit test tokens to your Auth Wallet: ${authWallet.address} before continuing.`
-            );
-            logger.log(
-              'You can get test tokens from the following faucet: https://chronicle-yellowstone-faucet.getlit.dev/'
-            );
-            process.exit(1);
-          }
-          logger.error('Failed to initialize agent wallet: ' + error);
-          process.exit(1);
-        }
-      } else {
-        logger.success('Successfully loaded existing agent wallet.');
-      }
+      logger.success('Successfully initialized Lit Agent');
     } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message.includes('Insufficient balance')
+      ) {
+        const authWallet = storage.getWallet();
+        if (!authWallet) throw error;
+
+        logger.error(
+          'Your Auth Wallet does not have enough Lit test tokens to mint the Agent Wallet.'
+        );
+        logger.info(
+          `Please send Lit test tokens to your Auth Wallet: ${authWallet.address} before continuing.`
+        );
+        logger.log(
+          'You can get test tokens from the following faucet: https://chronicle-yellowstone-faucet.getlit.dev/'
+        );
+        process.exit(1);
+      }
       logger.error('Failed to initialize Lit Agent: ' + error);
       process.exit(1);
     }
