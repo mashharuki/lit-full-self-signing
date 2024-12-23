@@ -36,7 +36,7 @@ declare global {
   };
 }
 
-export default (async () => {
+export default async () => {
   try {
     // Helper Functions
     async function getTokenInfo(provider: any) {
@@ -190,14 +190,34 @@ export default (async () => {
 
             return receipt.transactionHash;
           } catch (err: any) {
-            console.error('Error details:', {
+            // Log the full error object for debugging
+            console.error('Full error object:', JSON.stringify(err, null, 2));
+
+            // Extract detailed error information
+            const errorDetails = {
               message: err.message,
               code: err.code,
               reason: err.reason,
-              transaction: err.transaction,
-              receipt: err.receipt,
-            });
-            throw new Error(`Transaction failed: ${err.message}`);
+              error: err.error,
+              ...(err.transaction && { transaction: err.transaction }),
+              ...(err.receipt && { receipt: err.receipt }),
+            };
+
+            console.error(
+              'Error details:',
+              JSON.stringify(errorDetails, null, 2)
+            );
+
+            // Construct a detailed error message
+            const errorMessage = [
+              err.reason || err.message,
+              err.error?.message,
+              err.error?.data?.message,
+            ]
+              .filter(Boolean)
+              .join(': ');
+
+            throw new Error(errorMessage || 'Transaction failed');
           }
         }
       );
@@ -235,4 +255,4 @@ export default (async () => {
       }),
     });
   }
-})();
+};
