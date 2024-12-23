@@ -19,10 +19,6 @@ export async function executeAction(
     return await signer.executeJs({
       ipfsId: ipfsCid,
       jsParams: {
-        chainInfo: {
-          rpcUrl: 'https://base-sepolia-rpc.publicnode.com',
-          chainId: 84532,
-        },
         pkp: {
           ethAddress: pkpInfo.ethAddress,
           publicKey: pkpInfo.publicKey,
