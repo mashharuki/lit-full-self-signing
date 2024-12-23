@@ -1,8 +1,8 @@
 import { AgentSigner } from '@lit-protocol/agent-signer';
 import type { ToolInfo } from '@lit-protocol/agent-tool-registry';
 import {
-  isToolSupported,
   getToolFromRegistry,
+  validateParamsAgainstPolicy,
 } from '@lit-protocol/agent-tool-registry';
 import { OpenAI } from 'openai';
 
@@ -90,11 +90,21 @@ export class LitAgent {
           tool,
           null
         );
-        if (usePolicy && policyValues && isToolSupported(tool.name)) {
+        if (usePolicy && policyValues) {
           try {
             const registryTool = getToolFromRegistry(tool.name);
-            // Validate and encode policy
+            // Validate policy schema
             registryTool.Policy.schema.parse(policyValues);
+            // Validate parameters against policy restrictions
+            try {
+              validateParamsAgainstPolicy(tool, finalParams, policyValues);
+            } catch (error) {
+              throw new LitAgentError(
+                LitAgentErrorType.TOOL_VALIDATION_FAILED,
+                error instanceof Error ? error.message : 'Invalid policy values'
+              );
+            }
+            // Encode policy
             const encodedPolicy = registryTool.Policy.encode(policyValues);
             finalParams = {
               ...finalParams,
@@ -103,7 +113,9 @@ export class LitAgent {
           } catch (error) {
             throw new LitAgentError(
               LitAgentErrorType.TOOL_VALIDATION_FAILED,
-              'Invalid policy values',
+              error instanceof LitAgentError
+                ? error.message
+                : 'Invalid policy values',
               { tool, policyValues, originalError: error }
             );
           }

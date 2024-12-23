@@ -6,6 +6,7 @@ import {
 } from '@lit-protocol/agent-tool-registry';
 import { logger } from '../utils/logger';
 import { z } from 'zod';
+import { ethers } from 'ethers';
 
 export async function promptForToolPolicy(
   tool: ToolInfo,
@@ -98,10 +99,18 @@ export async function promptForToolPolicy(
           {
             type: 'input',
             name: 'value',
-            message: `Enter ${key}:`,
+            message: key.toLowerCase().startsWith('max')
+              ? `Enter ${key} (in ETH):`
+              : `Enter ${key}:`,
             validate: (input: string) => {
               try {
-                zodField.parse(input);
+                if (key.toLowerCase().startsWith('max')) {
+                  // Convert ETH to wei for validation
+                  const weiValue = ethers.utils.parseEther(input).toString();
+                  zodField.parse(weiValue);
+                } else {
+                  zodField.parse(input);
+                }
                 return true;
               } catch (err) {
                 const error = err as z.ZodError;
@@ -112,7 +121,13 @@ export async function promptForToolPolicy(
             },
           },
         ]);
-        policyValues[key] = value;
+
+        // Convert ETH to wei for maxAmount fields
+        if (key.toLowerCase().startsWith('max')) {
+          policyValues[key] = ethers.utils.parseEther(value).toString();
+        } else {
+          policyValues[key] = value;
+        }
       }
     }
 
@@ -121,6 +136,9 @@ export async function promptForToolPolicy(
     Object.entries(policyValues).forEach(([key, value]) => {
       if (Array.isArray(value)) {
         logger.log(`${key}: ${value.length ? value.join(', ') : 'Any'}`);
+      } else if (key.toLowerCase().startsWith('max')) {
+        // Show amounts in ETH
+        logger.log(`${key}: ${ethers.utils.formatEther(value)} ETH`);
       } else {
         logger.log(`${key}: ${value}`);
       }
