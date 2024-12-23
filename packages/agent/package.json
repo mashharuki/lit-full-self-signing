@@ -4,6 +4,7 @@
   "dependencies": {
     "@lit-protocol/agent-signer": "workspace:*",
     "@lit-protocol/agent-tool-registry": "workspace:*",
+    "@lit-protocol/constants": "workspace:*",
     "bs58": "^5.0.0",
     "ethers": "catalog:",
     "openai": "^4.77.0",
