@@ -1,6 +1,14 @@
-import { startCLI } from './lib/agent-cli';
+import { AgentCLI } from './lib/agent-cli';
 
-// Run the CLI when this file is executed directly
+export async function startCli(): Promise<void> {
+  const cli = new AgentCLI();
+  await cli.start();
+}
+
+// Start CLI if this is the main module
 if (require.main === module) {
-  startCLI();
+  startCli().catch((error) => {
+    console.error('Failed to start CLI:', error);
+    process.exit(1);
+  });
 }

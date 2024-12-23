@@ -1,4 +1,4 @@
-import { AgentSigner } from '@lit-protocol/agent-signer/dist/src/lib/agent-signer';
+import { AgentSigner } from '@lit-protocol/agent-signer';
 import type { ToolInfo } from '@lit-protocol/agent-tool-registry';
 import { LitAgentError, LitAgentErrorType } from '../../errors';
 import { checkToolPermission } from './checkToolPermission';

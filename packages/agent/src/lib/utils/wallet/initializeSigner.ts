@@ -1,4 +1,4 @@
-import { AgentSigner } from '@lit-protocol/agent-signer/dist/src/lib/agent-signer';
+import { AgentSigner } from '@lit-protocol/agent-signer';
 import { LitAgentError, LitAgentErrorType } from '../../errors';
 import { createAgentWallet } from './createAgentWallet';
 import { hasExistingAgentWallet } from './hasExistingAgentWallet';
