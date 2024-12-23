@@ -100,6 +100,9 @@ export class AgentCLI {
     }
 
     const openAiKey = await promptForOpenAIKey();
+    // @TODO
+    // @ts-expect-error Argument of type 'import("/Users/whyit/code/lit-protocol/lit-ai-agent/packages/agent-signer/src/lib/agent-signer").AgentSigner' is not assignable to parameter of type 'import("/Users/whyit/code/lit-protocol/lit-ai-agent/packages/agent-signer/dist/src/lib/agent-signer").AgentSigner'.
+    // Types have separate declarations of a private property 'litNodeClient'.
     this.litAgent = new LitAgent(this.agentSigner, openAiKey);
     logger.success('Successfully initialized Lit Agent');
   }

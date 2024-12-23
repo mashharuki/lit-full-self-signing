@@ -1,4 +1,4 @@
-import { AgentSigner } from '@lit-protocol/agent-signer';
+import type { AgentSigner } from '@lit-protocol/agent-signer';
 import {
   listAvailableTools,
   type ToolInfo,
