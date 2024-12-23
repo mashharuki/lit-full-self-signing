@@ -11,6 +11,7 @@ import { promptForOpenAIKey } from './prompts/config';
 import { promptForUserIntent } from './prompts/intent';
 import { promptForToolPermission } from './prompts/permissions';
 import { collectMissingParams } from './prompts/parameters';
+import { promptForToolPolicy } from './prompts/policy';
 
 export class AgentCLI {
   private litAgent: LitAgent | null = null;
@@ -107,6 +108,9 @@ export class AgentCLI {
               });
               return allParams;
             },
+            policyCallback: async (tool, currentPolicy) => {
+              return promptForToolPolicy(tool, currentPolicy);
+            },
           }
         );
 
@@ -129,6 +133,9 @@ export class AgentCLI {
               break;
             case LitAgentErrorType.INVALID_PARAMETERS:
               logger.error(`Invalid parameters: ${error.message}`);
+              break;
+            case LitAgentErrorType.TOOL_VALIDATION_FAILED:
+              logger.error(`Policy validation failed: ${error.message}`);
               break;
             default:
               logger.error(`Operation failed: ${error.message}`);
