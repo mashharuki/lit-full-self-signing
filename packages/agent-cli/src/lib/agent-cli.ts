@@ -84,32 +84,6 @@ export class AgentCLI {
         continue;
       }
 
-      // Check permissions and prompt if needed
-      if (!result.isPermitted) {
-        const shouldPermit = await promptForToolPermission(result.matchedTool);
-        if (!shouldPermit) {
-          logger.info('Tool permission denied. Returning to main prompt...');
-          continue;
-        }
-
-        try {
-          await this.litAgent.permitTool(result.matchedTool.ipfsCid);
-          logger.success(
-            `Successfully permitted tool: ${result.matchedTool.name}`
-          );
-        } catch (error) {
-          if (
-            error instanceof LitAgentError &&
-            error.type === LitAgentErrorType.TOOL_PERMISSION_FAILED
-          ) {
-            logger.error(`Failed to permit tool: ${error.message}`);
-          } else {
-            logger.error(`Unexpected error while permitting tool: ${error}`);
-          }
-          continue;
-        }
-      }
-
       // Collect any missing parameters
       try {
         const allParams = await collectMissingParams(
@@ -119,10 +93,20 @@ export class AgentCLI {
 
         // Execute the tool
         logger.info('Executing tool...');
-        const executionResult = await this.litAgent.executeTool(
-          result.matchedTool.ipfsCid,
-          allParams
-        );
+        const executionResult =
+          await this.litAgent.executeToolWithPermissionCheck(
+            result.matchedTool.ipfsCid,
+            allParams,
+            async (tool) => {
+              const shouldPermit = await promptForToolPermission(tool);
+              if (!shouldPermit) {
+                logger.info(
+                  'Tool permission denied. Returning to main prompt...'
+                );
+              }
+              return shouldPermit;
+            }
+          );
         logger.success('Tool execution completed');
         logger.log(`Result: ${JSON.stringify(executionResult, null, 2)}`);
       } catch (error) {
@@ -130,6 +114,9 @@ export class AgentCLI {
           switch (error.type) {
             case LitAgentErrorType.TOOL_EXECUTION_FAILED:
               logger.error(`Tool execution failed: ${error.message}`);
+              break;
+            case LitAgentErrorType.TOOL_PERMISSION_FAILED:
+              // Permission denial is already handled in the callback
               break;
             case LitAgentErrorType.INVALID_PARAMETERS:
               logger.error(`Invalid parameters: ${error.message}`);
