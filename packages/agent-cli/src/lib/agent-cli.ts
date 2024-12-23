@@ -3,7 +3,7 @@ import { AgentSigner } from '@lit-protocol/agent-signer';
 import { logger } from './utils/logger';
 import { showMainMenu } from './menu';
 import { storage } from './utils/storage';
-import { getAuthPrivateKey } from './wallet';
+import { getAuthPrivateKey, StoredWallet } from './wallet';
 
 export class AgentCLI {
   private program: Command;
@@ -50,11 +50,16 @@ export class AgentCLI {
           error instanceof Error &&
           error.message.includes('Insufficient balance')
         ) {
+          const authWallet = storage.getWallet() as StoredWallet;
+
           logger.error(
             'Your Auth Wallet does not have enough Lit test tokens to mint the Agent Wallet.'
           );
           logger.info(
-            'Please get Lit test tokens using the faucet before continuing: https://chronicle-yellowstone-faucet.getlit.dev/'
+            `Please send Lit test tokens to your Auth Wallet: ${authWallet.address} before continuing.`
+          );
+          logger.info(
+            'You can get test tokens from the following faucet: https://chronicle-yellowstone-faucet.getlit.dev/'
           );
           process.exit(1);
         }

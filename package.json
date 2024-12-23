@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
+    "build": "npx nx run-many -t build",
     "clean": "node tools/clean.js"
   },
   "private": true,

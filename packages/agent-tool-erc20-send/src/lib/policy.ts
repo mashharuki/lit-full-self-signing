@@ -3,7 +3,6 @@ import {
   BaseLitActionPolicySchema,
   BaseEthereumAddressSchema,
   EthereumAddress,
-  registerPolicy,
 } from '@lit-protocol/agent-toolkit';
 import { z } from 'zod';
 import { ethers } from 'ethers';
@@ -72,10 +71,3 @@ export function decodeSendERC20Policy(encodedPolicy: string): SendERC20Policy {
   // Validate the decoded policy
   return SendERC20PolicySchema.parse(policy);
 }
-
-// Register the SendERC20 policy
-registerPolicy<SendERC20Policy>('SendERC20', {
-  schema: SendERC20PolicySchema,
-  encode: encodeSendERC20Policy,
-  decode: decodeSendERC20Policy,
-});
