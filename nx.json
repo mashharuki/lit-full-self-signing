@@ -53,5 +53,6 @@
     "version": {
       "preVersionCommand": "pnpm dlx nx run-many -t build"
     }
-  }
+  },
+  "ignore": ["**/dist/**", "**/node_modules/**", "packages/agent-contracts/**"]
 }

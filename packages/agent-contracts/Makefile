@@ -1,6 +1,6 @@
 -include .env
 
-.PHONY: help deploy-registry build test deploy-dev-erc20 mint-dev-erc20 dev-erc20-balance
+.PHONY: help deploy-registry build test deploy-dev-erc20 mint-dev-erc20
 
 help: ## Display this help screen
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
