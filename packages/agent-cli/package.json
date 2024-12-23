@@ -1,10 +1,6 @@
 {
   "name": "@lit-protocol/agent-cli",
   "version": "0.0.1",
-  "description": "CLI tool for interacting with the Lit Protocol Agent",
-  "bin": {
-    "lit-agent": "./dist/cli.js"
-  },
   "dependencies": {
     "@lit-protocol/agent": "workspace:*",
     "@lit-protocol/agent-signer": "workspace:*",

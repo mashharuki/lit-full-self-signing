@@ -35,8 +35,6 @@ declare global {
 }
 
 export default async () => {
-  console.log('REMOVE_ME');
-
   try {
     async function getTokenInfo(provider: any) {
       const tokenInterface = new ethers.utils.Interface([

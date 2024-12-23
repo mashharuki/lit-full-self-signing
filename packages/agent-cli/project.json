@@ -8,7 +8,7 @@
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/packages/agent-cli",
+        "outputPath": "packages/agent-cli/dist",
         "main": "packages/agent-cli/src/index.ts",
         "tsConfig": "packages/agent-cli/tsconfig.lib.json",
         "assets": ["packages/agent-cli/*.md"]
@@ -17,7 +17,7 @@
     "start": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "node dist/packages/agent-cli/src/index.js"
+        "command": "node packages/agent-cli/dist/src/index.js"
       },
       "dependsOn": ["build"]
     }
