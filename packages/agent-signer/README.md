@@ -12,7 +12,7 @@ Secure transaction signing implementation for Lit AI Agents using Lit Protocol's
 ## Installation
 
 ```bash
-npm install @lit-protocol/agent-signer
+pnpm add @lit-protocol/agent-signer
 ```
 
 ## Usage

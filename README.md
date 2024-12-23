@@ -18,34 +18,40 @@ The Lit AI Agent project consists of several packages that work together to prov
 
 1. Install dependencies:
 ```bash
-npm install
+pnpm install
 ```
 
 2. Build all packages:
 ```bash
-npm run build
+pnpm nx run-many -t build
 ```
 
 3. Try out the CLI:
 ```bash
 cd packages/agent-cli
-npm link
+pnpm link
 lit-agent
 ```
 
 ## Development
 
-This is an Nx monorepo. To work with individual packages:
+This is an Nx monorepo using pnpm workspaces. Here's how to work with it:
 
 ```bash
 # Build a specific package
-npx nx build <package-name>
+pnpm nx build <package-name>
 
 # Test a specific package
-npx nx test <package-name>
+pnpm nx test <package-name>
+
+# Run a command across all packages
+pnpm nx run-many -t <command>
 
 # Generate a new package
-npx nx g @nx/js:lib packages/new-package --publishable --importPath=@lit-protocol/new-package
+pnpm nx g @nx/js:lib packages/new-package --publishable --importPath=@lit-protocol/new-package
+
+# Visualize project dependencies
+pnpm nx graph
 ```
 
 ## Architecture

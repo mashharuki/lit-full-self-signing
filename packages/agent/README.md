@@ -13,7 +13,7 @@ The core agent implementation for the Lit AI Agent framework. This package provi
 ## Installation
 
 ```bash
-npm install @lit-protocol/agent
+pnpm add @lit-protocol/agent
 ```
 
 ## Usage

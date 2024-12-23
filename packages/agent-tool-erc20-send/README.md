@@ -13,7 +13,7 @@ A Lit AI Agent tool for sending ERC20 tokens. This package serves as both an exa
 ## Installation
 
 ```bash
-npm install @lit-protocol/agent-tool-erc20-send
+pnpm add @lit-protocol/agent-tool-erc20-send
 ```
 
 ## Usage
@@ -99,7 +99,7 @@ The tool is implemented as a Lit Action that:
 ### Building
 
 ```bash
-npm run build
+pnpm build
 ```
 
 This will:
@@ -110,7 +110,7 @@ This will:
 ### Testing
 
 ```bash
-npm test
+pnpm test
 ```
 
 ## License

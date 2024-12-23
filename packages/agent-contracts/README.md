@@ -13,7 +13,7 @@ Smart contracts for the Lit AI Agent system. These contracts manage agent polici
 ## Installation
 
 ```bash
-npm install @lit-protocol/agent-contracts
+pnpm add @lit-protocol/agent-contracts
 ```
 
 ## Smart Contracts
@@ -71,16 +71,16 @@ interface ILitAgentRegistry {
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Compile contracts
-npm run compile
+pnpm compile
 
 # Run tests
-npm test
+pnpm test
 
 # Deploy contracts
-npm run deploy
+pnpm deploy
 ```
 
 ### Testing
@@ -93,13 +93,13 @@ The contracts include:
 
 ```bash
 # Run all tests
-npm test
+pnpm test
 
 # Run specific test file
-npx hardhat test test/LitAgentRegistry.test.ts
+pnpm nx test agent-contracts -- test/LitAgentRegistry.test.ts
 
 # Run gas reporter
-REPORT_GAS=true npm test
+REPORT_GAS=true pnpm test
 ```
 
 ### Deployment
@@ -112,12 +112,12 @@ cp .env.example .env
 
 2. Deploy contracts:
 ```bash
-npx hardhat run scripts/deploy.ts --network <network>
+pnpm nx run agent-contracts:deploy -- --network <network>
 ```
 
 3. Verify contracts:
 ```bash
-npx hardhat verify --network <network> <contract-address>
+pnpm nx run agent-contracts:verify -- --network <network> <contract-address>
 ```
 
 ## Security

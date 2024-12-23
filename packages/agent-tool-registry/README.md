@@ -13,7 +13,7 @@ Central registry for Lit AI Agent tools. This package manages the registration, 
 ## Installation
 
 ```bash
-npm install @lit-protocol/agent-tool-registry
+pnpm add @lit-protocol/agent-tool-registry
 ```
 
 ## Usage

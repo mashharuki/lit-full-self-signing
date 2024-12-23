@@ -12,7 +12,7 @@ A collection of shared utilities and interfaces for building Lit AI Agent tools.
 ## Installation
 
 ```bash
-npm install @lit-protocol/agent-toolkit
+pnpm add @lit-protocol/agent-toolkit
 ```
 
 ## Usage
