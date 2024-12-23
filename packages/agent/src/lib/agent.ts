@@ -4,7 +4,6 @@ import {
   type ToolInfo,
 } from '@lit-protocol/agent-tool-registry';
 import { OpenAI } from 'openai';
-import type { ethers } from 'ethers';
 
 export class LitAgent {
   private signer: AgentSigner;

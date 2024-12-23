@@ -16,6 +16,9 @@
       "path": "../agent-signer"
     },
     {
+      "path": "../agent"
+    },
+    {
       "path": "./tsconfig.lib.json"
     },
     {

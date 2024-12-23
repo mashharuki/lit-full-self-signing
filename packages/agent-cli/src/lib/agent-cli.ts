@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import { AgentSigner } from '@lit-protocol/agent-signer';
 import { LitAgent } from '@lit-protocol/agent';
 import { AUTH_METHOD_SCOPE } from '@lit-protocol/constants';
+
 import { logger } from './utils/logger';
 import { storage } from './utils/storage';
 import { getAuthPrivateKey } from './wallet';
@@ -66,7 +67,7 @@ export class AgentCLI {
           logger.info(
             `Please send Lit test tokens to your Auth Wallet: ${authWallet.address} before continuing.`
           );
-          logger.info(
+          logger.log(
             'You can get test tokens from the following faucet: https://chronicle-yellowstone-faucet.getlit.dev/'
           );
           process.exit(1);
