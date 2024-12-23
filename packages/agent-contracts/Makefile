@@ -1,6 +1,6 @@
 -include .env
 
-.PHONY: help deploy-registry
+.PHONY: help deploy-registry build test deploy-dev-erc20 mint-dev-erc20
 
 help: ## Display this help screen
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -53,3 +53,43 @@ deploy-registry: ## Deploy the Lit Agent Registry contract
 # 		--compiler-version v0.8.24+commit.f704f362 \
 # 		$(REGISTRY_ADDRESS) \
 # 		src/LitAgentRegistry.sol:LitAgentRegistry
+
+build:
+	forge build
+
+test:
+	forge test
+
+deploy-dev-erc20: ## Deploy the DevERC20 contract
+	@if [ -z "$(CHAIN_TO_DEPLOY_TO_RPC_URL)" ]; then \
+		echo "Error: CHAIN_TO_DEPLOY_TO_RPC_URL is not set in .env"; \
+		exit 1; \
+	fi
+	@echo "Deploying DevERC20 to $(CHAIN_TO_DEPLOY_TO_RPC_URL)..."
+	@forge script -vvv script/DeployDevERC20.s.sol:DeployDevERC20Script \
+		--rpc-url $(CHAIN_TO_DEPLOY_TO_RPC_URL) \
+		--broadcast \
+		--private-key $(FORGE_DEPLOYER_PRIVATE_KEY)
+
+mint-dev-erc20: ## Mint DevERC20 tokens for a recipient
+	@if [ -z "$(CHAIN_TO_DEPLOY_TO_RPC_URL)" ]; then \
+		echo "Error: CHAIN_TO_DEPLOY_TO_RPC_URL is not set in .env"; \
+		exit 1; \
+	fi
+	@if [ -z "$(DEVERC20_CONTRACT_ADDRESS)" ]; then \
+		echo "Error: DEVERC20_CONTRACT_ADDRESS is not set in .env"; \
+		exit 1; \
+	fi
+	@if [ -z "$(DEVERC20_MINT_RECIPIENT)" ]; then \
+		echo "Error: DEVERC20_MINT_RECIPIENT is not set in .env"; \
+		exit 1; \
+	fi
+	@if [ -z "$(DEVERC20_MINT_AMOUNT)" ]; then \
+		echo "Error: DEVERC20_MINT_AMOUNT is not set in .env"; \
+		exit 1; \
+	fi
+	@echo "Minting $(DEVERC20_MINT_AMOUNT) tokens for $(DEVERC20_MINT_RECIPIENT)..."
+	@forge script -vvv script/MintDevERC20.s.sol:MintDevERC20Script \
+		--rpc-url $(CHAIN_TO_DEPLOY_TO_RPC_URL) \
+		--broadcast \
+		--private-key $(FORGE_DEPLOYER_PRIVATE_KEY)

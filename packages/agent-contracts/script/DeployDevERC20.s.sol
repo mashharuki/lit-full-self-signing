@@ -6,7 +6,7 @@ import "../src/DevERC20.sol";
 
 contract DeployDevERC20Script is Script {
     function run() external {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        uint256 deployerPrivateKey = vm.envUint("FORGE_DEPLOYER_PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
         // Deploy the token with name "Dev Token" and symbol "DEV"

@@ -1,3 +1,8 @@
+## Deployed Contracts
+
+- DevERC20
+  - Base Sepolia: `0x4070c8325e278ca1056e602e08d16d2D5cd79b27`
+
 ## Foundry
 
 **Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
