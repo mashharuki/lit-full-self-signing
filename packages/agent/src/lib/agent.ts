@@ -9,6 +9,7 @@ import type { ethers } from 'ethers';
 export class LitAgent {
   private signer: AgentSigner;
   private openai: OpenAI;
+  private readonly openAiModel = 'gpt-4o-mini';
 
   constructor(signer: AgentSigner, openAiApiKey: string) {
     this.signer = signer;
@@ -38,15 +39,62 @@ export class LitAgent {
           }`;
   }
 
-  public async checkAgentWalletForPermittedTool(
-    matchedTool: ToolInfo | null
+  private async checkAgentWalletForPermittedTool(
+    matchedTool: ToolInfo
   ): Promise<boolean> {
-    if (!matchedTool) {
-      return false;
-    }
-
     const permittedActions = await this.signer.pkpListPermittedActions();
     return permittedActions.includes(matchedTool.ipfsCid);
+  }
+
+  private async parseToolParameters(
+    userIntent: string,
+    tool: ToolInfo
+  ): Promise<{
+    foundParams: Record<string, string>;
+    missingParams: string[];
+  }> {
+    const completion = await this.openai.chat.completions.create({
+      model: this.openAiModel,
+      messages: [
+        {
+          role: 'system',
+          content: `You are a parameter parser for web3 transactions. Given a user's intent and a tool's required parameters, extract the parameter values from the intent.
+          
+          Tool: ${tool.name}
+          Parameters:
+          ${tool.parameters
+            .map((param) => `- ${param.name}: ${param.description}`)
+            .join('\n')}
+
+          Return a JSON object with:
+          {
+            "foundParams": {
+              "paramName": "extractedValue",
+              ...
+            },
+            "missingParams": ["paramName1", "paramName2", ...]
+          }
+
+          Important:
+          1. Only include parameters in foundParams if you are completely certain about their values
+          2. For any parameters you're unsure about or can't find in the intent, include them in missingParams
+          3. All parameter values must be strings
+          4. For token amounts, return them as decimal strings (e.g., "1.5", "10.0")
+          5. For addresses, ensure they start with "0x" and are the correct length`,
+        },
+        {
+          role: 'user',
+          content: userIntent,
+        },
+      ],
+      response_format: { type: 'json_object' },
+    });
+
+    const result = JSON.parse(completion.choices[0].message.content || '{}');
+    return {
+      foundParams: result.foundParams || {},
+      missingParams: result.missingParams || [],
+    };
   }
 
   public async analyzeUserIntentAndMatchAction(userIntent: string) {
@@ -54,7 +102,7 @@ export class LitAgent {
     const availableTools = listAvailableTools();
 
     const completion = await this.openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: this.openAiModel,
       messages: [
         {
           role: 'system',
@@ -75,14 +123,20 @@ export class LitAgent {
         ) || null
       : null;
 
-    const isPermitted = await this.checkAgentWalletForPermittedTool(
-      matchedTool
-    );
+    const isPermitted = matchedTool
+      ? await this.checkAgentWalletForPermittedTool(matchedTool)
+      : false;
+
+    // If we have a matched tool, try to parse parameters
+    const params = matchedTool
+      ? await this.parseToolParameters(userIntent, matchedTool)
+      : { foundParams: {}, missingParams: [] };
 
     return {
       analysis,
       matchedTool,
       isPermitted,
+      params,
     };
   }
 }
