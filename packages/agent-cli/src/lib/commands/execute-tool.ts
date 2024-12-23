@@ -59,6 +59,14 @@ async function collectParameters(
   return parameters;
 }
 
+function formatResponse(response: unknown): string {
+  try {
+    return JSON.stringify(response, null, 2);
+  } catch {
+    return String(response);
+  }
+}
+
 export async function executeTool(agentSigner: AgentSigner): Promise<void> {
   logger.info('Fetching available tools...');
 
@@ -83,6 +91,16 @@ export async function executeTool(agentSigner: AgentSigner): Promise<void> {
         'Selected tool is not registered in the Lit Agent Tool Registry'
       );
       logger.info(`Tool IPFS CID: ${selectedTool.base58Cid}`);
+
+      // For unknown tools, we can still try to execute them with empty parameters
+      logger.info('Attempting to execute unknown tool...');
+      const result = await agentSigner.executeJs({
+        ipfsId: selectedTool.ipfsCid,
+        jsParams: {},
+      });
+
+      logger.success('Tool execution completed');
+      logger.log(`Response:\n${formatResponse(result)}`);
     } else {
       logger.success(`Selected tool: ${selectedTool.name}`);
       logger.info(`Description: ${selectedTool.description}`);
@@ -93,10 +111,17 @@ export async function executeTool(agentSigner: AgentSigner): Promise<void> {
       Object.entries(parameters).forEach(([key, value]) => {
         logger.log(`  ${key}: ${value}`);
       });
-    }
 
-    // TODO: Implement tool execution logic
-    logger.info('Tool execution not yet implemented');
+      // Execute the tool with the collected parameters
+      logger.info('Executing tool...');
+      const result = await agentSigner.executeJs({
+        ipfsId: selectedTool.ipfsCid,
+        jsParams: parameters,
+      });
+
+      logger.success('Tool execution completed');
+      logger.log(`Response:\n${formatResponse(result)}`);
+    }
   } catch (error) {
     logger.error(
       'Failed to execute tool: ' +
