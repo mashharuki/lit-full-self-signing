@@ -127,13 +127,7 @@ importers:
         specifier: ^1.3.3
         version: 1.3.3
 
-  packages/agent-registry:
-    dependencies:
-      tslib:
-        specifier: ^2.3.0
-        version: 2.8.1
-
-  packages/agent-registry/forge-contracts/lib/forge-std: {}
+  packages/agent-contracts/lib/forge-std: {}
 
   packages/agent-signer:
     dependencies:
