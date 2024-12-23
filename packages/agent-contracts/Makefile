@@ -94,7 +94,7 @@ mint-dev-erc20: ## Mint DevERC20 tokens for a recipient
 		--broadcast \
 		--private-key $(FORGE_DEPLOYER_PRIVATE_KEY)
 
-dev-erc20-balance: ## Check DevERC20 balance for an address. Usage: make dev-erc20-balance address=0x...
+dev-erc20-balance: ## Check DevERC20 balance for an address. Usage: make dev-erc20-balance ADDR=0x...
 	@if [ -z "$(CHAIN_TO_DEPLOY_TO_RPC_URL)" ]; then \
 		echo "Error: CHAIN_TO_DEPLOY_TO_RPC_URL is not set in .env"; \
 		exit 1; \
@@ -103,8 +103,13 @@ dev-erc20-balance: ## Check DevERC20 balance for an address. Usage: make dev-erc
 		echo "Error: DEVERC20_CONTRACT_ADDRESS is not set in .env"; \
 		exit 1; \
 	fi
-	@if [ -z "$(address)" ]; then \
-		echo "Error: address parameter is required. Usage: make dev-erc20-balance address=0x..."; \
+	@if [ -z "$(ADDR)" ]; then \
+		echo "Error: ADDR parameter is required. Usage: make dev-erc20-balance ADDR=0x..."; \
 		exit 1; \
 	fi
-	@cast call $(DEVERC20_CONTRACT_ADDRESS) "balanceOf(address)(uint256)" $(address) --rpc-url $(CHAIN_TO_DEPLOY_TO_RPC_URL) | cast --from-wei
+	@echo "Checking DevERC20 balance for $(ADDR) ..."
+	@cast call --json $(DEVERC20_CONTRACT_ADDRESS) \
+		"balanceOf(address)(uint256)" $(ADDR) \
+		--rpc-url $(CHAIN_TO_DEPLOY_TO_RPC_URL) \
+	| jq -r '.[0]' \
+	| xargs cast from-wei
