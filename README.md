@@ -1,90 +1,76 @@
-# LitAiAgent
+# Lit AI Agent
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+A modular framework for building AI agents that can interact with blockchain and web3 infrastructure through the Lit Protocol ecosystem. This project enables the creation of autonomous agents that can execute blockchain transactions and interact with smart contracts based on natural language instructions, while maintaining security through configurable policies.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is almost ready ✨.
+## Project Overview
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+The Lit AI Agent project consists of several packages that work together to provide a complete framework for building and deploying AI agents:
 
-## Finish your CI setup
+- `agent`: Core agent implementation that handles natural language processing and tool execution
+- `agent-cli`: Command-line interface for interacting with Lit agents
+- `agent-contracts`: Smart contracts for agent registry and policy management
+- `agent-signer`: Handles authentication and signing of transactions
+- `agent-tool-registry`: Registry for available agent tools and capabilities
+- `agent-tool-erc20-send`: Example tool implementation for sending ERC20 tokens
+- `agent-toolkit`: Shared utilities and interfaces for building agent tools
 
-[Click here to finish setting up your workspace!](https://cloud.nx.app/connect/tJac3rjldb)
+## Getting Started
 
-
-## Generate a library
-
-```sh
-npx nx g @nx/js:lib packages/pkg1 --publishable --importPath=@my-org/pkg1
+1. Install dependencies:
+```bash
+npm install
 ```
 
-## Run tasks
-
-To build the library use:
-
-```sh
-npx nx build pkg1
+2. Build all packages:
+```bash
+npm run build
 ```
 
-To run any task with Nx use:
-
-```sh
-npx nx <target> <project-name>
+3. Try out the CLI:
+```bash
+cd packages/agent-cli
+npm link
+lit-agent
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+## Development
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+This is an Nx monorepo. To work with individual packages:
 
-## Versioning and releasing
+```bash
+# Build a specific package
+npx nx build <package-name>
 
-To version and release the library use
+# Test a specific package
+npx nx test <package-name>
 
-```
-npx nx release
-```
-
-Pass `--dry-run` to see what would happen without actually releasing the library.
-
-[Learn more about Nx release &raquo;](hhttps://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Keep TypeScript project references up to date
-
-Nx automatically updates TypeScript [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) in `tsconfig.json` files to ensure they remain accurate based on your project dependencies (`import` or `require` statements). This sync is automatically done when running tasks such as `build` or `typecheck`, which require updated references to function correctly.
-
-To manually trigger the process to sync the project graph dependencies information to the TypeScript project references, run the following command:
-
-```sh
-npx nx sync
+# Generate a new package
+npx nx g @nx/js:lib packages/new-package --publishable --importPath=@lit-protocol/new-package
 ```
 
-You can enforce that the TypeScript project references are always in the correct state when running in CI by adding a step to your CI job configuration that runs the following command:
+## Architecture
 
-```sh
-npx nx sync:check
-```
+The project follows a modular architecture where:
 
-[Learn more about nx sync](https://nx.dev/reference/nx-commands#sync)
+1. The core agent (`agent`) processes natural language through OpenAI and matches intents to available tools
+2. Tools are registered in the `agent-tool-registry` with their capabilities and policies
+3. The `agent-signer` handles secure transaction signing using Lit Protocol's PKPs
+4. Smart contracts in `agent-contracts` manage on-chain policies and permissions
+5. The `agent-toolkit` provides shared utilities for building new tools
 
+## Security
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+The framework includes multiple security layers:
 
-## Install Nx Console
+1. Tool-specific policies that can restrict operations (e.g., max transaction amounts)
+2. On-chain policy management through smart contracts
+3. Secure key management through Lit Protocol's PKP system
+4. Permission callbacks for user approval of sensitive operations
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+## Contributing
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Contributions are welcome! Please check out our [Contributing Guide](CONTRIBUTING.md) for guidelines.
 
-## Useful links
+## License
 
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+MIT

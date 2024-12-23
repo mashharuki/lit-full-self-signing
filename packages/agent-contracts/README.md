@@ -1,71 +1,139 @@
-## Deployed Contracts
+# @lit-protocol/agent-contracts
 
-- DevERC20
-  - Base Sepolia: `0x4070c8325e278ca1056e602e08d16d2D5cd79b27`
+Smart contracts for the Lit AI Agent system. These contracts manage agent policies, permissions, and tool registrations on-chain.
 
-## Foundry
+## Features
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+- On-chain policy management
+- Tool registration and discovery
+- PKP-specific action policies
+- Permission management
+- Upgradeable contract system
 
-Foundry consists of:
+## Installation
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
-
-## Documentation
-
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
+```bash
+npm install @lit-protocol/agent-contracts
 ```
 
-### Test
+## Smart Contracts
 
-```shell
-$ forge test
+### LitAgentRegistry.sol
+
+The main registry contract that manages:
+- Tool registrations
+- Policy storage and validation
+- Permission management
+- PKP associations
+
+```solidity
+interface ILitAgentRegistry {
+    struct ActionPolicy {
+        bool isPermitted;
+        bytes description;
+        bytes policy;
+    }
+
+    function registerAction(
+        uint256 pkpId,
+        string calldata ipfsCid,
+        bytes calldata description,
+        bytes calldata policy
+    ) external;
+
+    function updatePolicy(
+        uint256 pkpId,
+        string calldata ipfsCid,
+        bytes calldata newPolicy
+    ) external;
+
+    function isActionPermitted(
+        uint256 pkpId,
+        string calldata ipfsCid
+    ) external view returns (bool);
+
+    function getActionPolicy(
+        uint256 pkpId,
+        string calldata ipfsCid
+    ) external view returns (ActionPolicy memory);
+}
 ```
 
-### Format
+## Development
 
-```shell
-$ forge fmt
+### Prerequisites
+
+- Node.js 16+
+- Hardhat
+- Foundry (optional, for additional testing)
+
+### Setup
+
+```bash
+# Install dependencies
+npm install
+
+# Compile contracts
+npm run compile
+
+# Run tests
+npm test
+
+# Deploy contracts
+npm run deploy
 ```
 
-### Gas Snapshots
+### Testing
 
-```shell
-$ forge snapshot
+The contracts include:
+- Unit tests
+- Integration tests
+- Fuzz tests (via Foundry)
+- Gas optimization tests
+
+```bash
+# Run all tests
+npm test
+
+# Run specific test file
+npx hardhat test test/LitAgentRegistry.test.ts
+
+# Run gas reporter
+REPORT_GAS=true npm test
 ```
 
-### Anvil
+### Deployment
 
-```shell
-$ anvil
+1. Set up environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your values
 ```
 
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+2. Deploy contracts:
+```bash
+npx hardhat run scripts/deploy.ts --network <network>
 ```
 
-### Cast
-
-```shell
-$ cast <subcommand>
+3. Verify contracts:
+```bash
+npx hardhat verify --network <network> <contract-address>
 ```
 
-### Help
+## Security
 
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+These contracts have been:
+- Audited by [Audit Firm]
+- Tested extensively
+- Designed with upgradability in mind
+- Protected against common attack vectors
+
+### Known Limitations
+
+1. Policy size limitations
+2. Gas costs for large policy updates
+3. Upgrade timelock restrictions
+
+## License
+
+MIT

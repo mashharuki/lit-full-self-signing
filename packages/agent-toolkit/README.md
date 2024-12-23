@@ -1,123 +1,116 @@
-# agent-toolkit
+# @lit-protocol/agent-toolkit
 
-This library was generated with [Nx](https://nx.dev).
+A collection of shared utilities and interfaces for building Lit AI Agent tools. This toolkit provides the foundation for creating secure and policy-controlled agent tools.
 
-## Building
+## Features
 
-Run `nx build agent-toolkit` to build the library.
+- Base interfaces for tool development
+- Policy management system
+- Common utilities for blockchain interactions
+- Type definitions for the Lit Protocol ecosystem
 
-## Running unit tests
+## Installation
 
-Run `nx test agent-toolkit` to execute the unit tests via [Jest](https://jestjs.io).
-
-# Lit Agent Tool Policies
-
-## Create A New Policy
-
-```ts
-// Define interface extending BaseLitActionPolicy
-interface MyNewPolicy extends BaseLitActionPolicy {
-    type: 'MyNewPolicy';
-    // ... your policy fields
-}
-
-// Create Zod schema
-const MyNewPolicySchema = BaseLitActionPolicySchema.extend({
-    type: z.literal('MyNewPolicy'),
-    // ... your schema fields
-});
-
-// Register the policy
-registerPolicy<MyNewPolicy>('MyNewPolicy', {
-    schema: MyNewPolicySchema,
-    encode: encodeMyNewPolicy,
-    decode: decodeMyNewPolicy,
-});
+```bash
+npm install @lit-protocol/agent-toolkit
 ```
 
-## Use A Policy
+## Usage
 
-```ts
-// Validate a policy
-const policy = validatePolicy<SendERC20Policy>('SendERC20', userInput);
+### Creating a New Tool
 
-// Encode a policy
+```typescript
+import { 
+  BaseLitActionPolicy,
+  BaseLitActionPolicySchema,
+  registerPolicy
+} from '@lit-protocol/agent-toolkit';
+
+// 1. Define your policy interface
+interface MyToolPolicy extends BaseLitActionPolicy {
+  type: 'MyTool';
+  maxAmount: string;
+  allowedTokens: string[];
+}
+
+// 2. Create the policy schema
+const MyToolPolicySchema = BaseLitActionPolicySchema.extend({
+  type: z.literal('MyTool'),
+  maxAmount: z.string(),
+  allowedTokens: z.array(z.string())
+});
+
+// 3. Register your policy
+registerPolicy<MyToolPolicy>('MyTool', {
+  schema: MyToolPolicySchema,
+  encode: (policy) => encodeMyToolPolicy(policy),
+  decode: (bytes) => decodeMyToolPolicy(bytes)
+});
+
+// 4. Use the policy in your tool
+const policy = validatePolicy<MyToolPolicy>('MyTool', userInput);
+const encoded = encodePolicy('MyTool', policy);
+```
+
+### Working with Policies
+
+```typescript
+// Validate a policy against its schema
+const policy = validatePolicy<SendERC20Policy>('SendERC20', {
+  type: 'SendERC20',
+  maxAmount: '1000000000000000000',
+  allowedTokens: ['0x...', '0x...']
+});
+
+// Encode a policy for on-chain storage
 const encoded = encodePolicy('SendERC20', policy);
 
-// Decode a policy
+// Decode a policy from on-chain data
 const decoded = decodePolicy<SendERC20Policy>('SendERC20', encoded);
 ```
 
-## Example ERC20 Send Policy
+## Policy System
 
-```ts
-// --- SendERC20 Policy Implementation ---
-export interface SendERC20Policy extends BaseLitActionPolicy {
-  type: 'SendERC20';
-  maxAmount: string;
-  allowedTokens: EthereumAddress[];
-  allowedRecipients: EthereumAddress[];
-}
+The toolkit provides a flexible policy system that allows tools to:
+1. Define their security requirements
+2. Validate user inputs against policies
+3. Encode/decode policies for on-chain storage
+4. Share common policy types across tools
 
-export const SendERC20PolicySchema = BaseLitActionPolicySchema.extend({
-  type: z.literal('SendERC20'),
-  maxAmount: z.string().refine(
-    (val) => {
-      try {
-        ethers.BigNumber.from(val);
-        return true;
-      } catch {
-        return false;
-      }
-    },
-    { message: 'Invalid amount format' }
-  ),
-  allowedTokens: z.array(BaseEthereumAddressSchema),
-  allowedRecipients: z.array(BaseEthereumAddressSchema),
-});
+### Built-in Policy Types
 
-export function encodeSendERC20Policy(policy: SendERC20Policy): string {
-  // Validate the policy using Zod
-  SendERC20PolicySchema.parse(policy);
+- `BaseLitActionPolicy`: The foundation for all policies
+- `SendERC20Policy`: For ERC20 token transfers
+- `SwapPolicy`: For token swap operations
+- `NFTPolicy`: For NFT operations
 
-  return ethers.utils.defaultAbiCoder.encode(
-    [
-      'tuple(uint256 maxAmount, address[] allowedTokens, address[] allowedRecipients)',
-    ],
-    [
-      {
-        maxAmount: policy.maxAmount,
-        allowedTokens: policy.allowedTokens,
-        allowedRecipients: policy.allowedRecipients,
-      },
-    ]
-  );
-}
+## API Reference
 
-export function decodeSendERC20Policy(encodedPolicy: string): SendERC20Policy {
-  const decoded = ethers.utils.defaultAbiCoder.decode(
-    [
-      'tuple(uint256 maxAmount, address[] allowedTokens, address[] allowedRecipients)',
-    ],
-    encodedPolicy
-  )[0];
+### Policy Management
 
-  const policy: SendERC20Policy = {
-    type: 'SendERC20',
-    version: '1.0.0',
-    maxAmount: decoded.maxAmount.toString(),
-    allowedTokens: decoded.allowedTokens,
-    allowedRecipients: decoded.allowedRecipients,
-  };
+#### `registerPolicy<T>()`
+Register a new policy type with its schema and encoding functions.
 
-  // Validate the decoded policy
-  return SendERC20PolicySchema.parse(policy);
-}
+#### `validatePolicy<T>()`
+Validate policy data against its registered schema.
 
-// Register the SendERC20 policy
-registerPolicy<SendERC20Policy>('SendERC20', {
-  schema: SendERC20PolicySchema,
-  encode: encodeSendERC20Policy,
-  decode: decodeSendERC20Policy,
-});
-```
+#### `encodePolicy()`
+Encode a policy for on-chain storage.
+
+#### `decodePolicy<T>()`
+Decode a policy from on-chain data.
+
+### Utilities
+
+#### `formatUnits()`
+Format token amounts with proper decimals.
+
+#### `parseUnits()`
+Parse token amounts into on-chain format.
+
+#### `validateAddress()`
+Validate Ethereum addresses.
+
+## License
+
+MIT
