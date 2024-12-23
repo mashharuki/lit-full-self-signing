@@ -1,8 +1,8 @@
 import inquirer from 'inquirer';
 import { AgentSigner } from '@lit-protocol/agent-signer';
 import { listAvailableTools } from '@lit-protocol/agent-tool-registry';
-
 import { logger } from '../utils/logger';
+import { AUTH_METHOD_SCOPE } from '@lit-protocol/constants';
 
 async function promptForTools() {
   const tools = listAvailableTools();
@@ -47,8 +47,23 @@ export async function addTools(agentSigner: AgentSigner): Promise<void> {
 
     const confirmed = await confirmTools(selectedTools);
     if (confirmed) {
-      // TODO: Implement tool registration with PKP
-      logger.success('Tools added successfully!');
+      const tools = listAvailableTools();
+      const selectedToolInfo = tools.filter((tool) =>
+        selectedTools.includes(tool.name)
+      );
+
+      for (const tool of selectedToolInfo) {
+        logger.info(`Registering ${tool.name}...`);
+        try {
+          await agentSigner.pkpPermitLitAction({
+            ipfsCid: tool.ipfsCid,
+            signingScopes: [AUTH_METHOD_SCOPE.SignAnything],
+          });
+          logger.success(`Successfully registered ${tool.name}`);
+        } catch (error) {
+          logger.error(`Failed to register ${tool.name}: ${error}`);
+        }
+      }
       return;
     }
 

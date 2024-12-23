@@ -13,6 +13,7 @@ import {
 
 export const SendERC20 = {
   description: sendERC20LitActionDescription,
+  ipfsCid: 'QmQwNvbP9YAY4B4wYgFoD6cNnX3udNDBjWC7RqN48GdpmN',
 
   Parameters: {
     type: {} as SendERC20LitActionParameters,
@@ -37,6 +38,7 @@ export type SupportedToolTypes = (typeof SUPPORTED_TOOLS)[number];
 export interface ToolInfo {
   name: string;
   description: string;
+  ipfsCid: string;
   parameters: {
     name: string;
     description: string;
@@ -48,6 +50,7 @@ export function listAvailableTools(): ToolInfo[] {
     {
       name: 'SendERC20',
       description: SendERC20.description as string,
+      ipfsCid: SendERC20.ipfsCid,
       parameters: Object.entries(SendERC20.Parameters.descriptions).map(
         ([name, description]) => ({
           name,
