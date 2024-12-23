@@ -3,44 +3,6 @@ import { ethers } from 'ethers';
 import { storage } from './utils/storage';
 import { logger } from './utils/logger';
 
-export interface StoredWallet {
-  privateKey: string;
-  address: string;
-  timestamp: number;
-}
-
-async function promptForExistingWallet(): Promise<'use' | 'new'> {
-  const { action } = await inquirer.prompt<{ action: 'use' | 'new' }>([
-    {
-      type: 'list',
-      name: 'action',
-      message: 'An auth wallet already exists. What would you like to do?',
-      choices: [
-        { name: 'Use existing wallet', value: 'use' },
-        { name: 'Create new wallet (will overwrite existing)', value: 'new' },
-      ],
-    },
-  ]);
-  return action;
-}
-
-async function promptForWalletChoice(): Promise<'generate' | 'existing'> {
-  const { choice } = await inquirer.prompt<{ choice: 'generate' | 'existing' }>(
-    [
-      {
-        type: 'list',
-        name: 'choice',
-        message: 'How would you like to proceed?',
-        choices: [
-          { name: 'Generate new wallet', value: 'generate' },
-          { name: 'Enter existing private key', value: 'existing' },
-        ],
-      },
-    ]
-  );
-  return choice;
-}
-
 async function promptForPrivateKey(): Promise<string> {
   const { privateKey } = await inquirer.prompt<{ privateKey: string }>([
     {
@@ -63,15 +25,27 @@ async function promptForPrivateKey(): Promise<string> {
   return privateKey;
 }
 
+async function promptForWalletChoice(): Promise<'generate' | 'provide'> {
+  const { choice } = await inquirer.prompt<{ choice: 'generate' | 'provide' }>([
+    {
+      type: 'list',
+      name: 'choice',
+      message: 'How would you like to proceed?',
+      choices: [
+        { name: 'Generate new wallet', value: 'generate' },
+        { name: 'Provide existing private key', value: 'provide' },
+      ],
+    },
+  ]);
+  return choice;
+}
+
 export async function getAuthPrivateKey(): Promise<string> {
   const existingWallet = storage.getWallet();
 
   if (existingWallet) {
-    const action = await promptForExistingWallet();
-    if (action === 'use') {
-      logger.info(`Using existing wallet: ${existingWallet.address}`);
-      return existingWallet.privateKey;
-    }
+    logger.info(`Using existing wallet: ${existingWallet.address}`);
+    return existingWallet.privateKey;
   }
 
   logger.log('\nWallet Initialization');
@@ -79,15 +53,15 @@ export async function getAuthPrivateKey(): Promise<string> {
   logger.info(
     'You need a private key with Lit test tokens to mint the agent wallet.'
   );
-  logger.info(
-    'You can either provide your own private key or have a new wallet generated for you.'
+  logger.log(
+    'You can either generate a new wallet or provide an existing private key.'
   );
 
   const choice = await promptForWalletChoice();
   let privateKey: string;
   let address: string;
 
-  if (choice === 'existing') {
+  if (choice === 'provide') {
     privateKey = await promptForPrivateKey();
     const wallet = new ethers.Wallet(privateKey);
     address = wallet.address;
@@ -99,15 +73,37 @@ export async function getAuthPrivateKey(): Promise<string> {
     logger.success('New wallet generated!');
     logger.info(`Address: ${address}`);
     logger.warn(
-      'IMPORTANT: This private key will be stored in local storage, but make sure to back it up!'
+      'IMPORTANT: Please save this private key somewhere safe. You will need it to get test tokens.'
     );
+    logger.warn(
+      'Please send Lit test tokens to this address before continuing.'
+    );
+    logger.log(
+      'You can get test tokens from: https://chronicle-yellowstone-faucet.getlit.dev/'
+    );
+
+    const { ready } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'ready',
+        message:
+          'Have you saved the private key and funded the wallet with test tokens?',
+        default: false,
+      },
+    ]);
+
+    if (!ready) {
+      logger.error(
+        'Please save the private key and fund the wallet before proceeding.'
+      );
+      process.exit(1);
+    }
   }
 
   // Store the wallet information
-  storage.storeWallet({
+  storage.setWallet({
     privateKey,
     address,
-    timestamp: Date.now(),
   });
 
   return privateKey;

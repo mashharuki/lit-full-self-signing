@@ -1,13 +1,19 @@
 import { Command } from 'commander';
 import { AgentSigner } from '@lit-protocol/agent-signer';
+import { LitAgent } from '@lit-protocol/agent';
+import { AUTH_METHOD_SCOPE } from '@lit-protocol/constants';
 import { logger } from './utils/logger';
-import { showMainMenu } from './menu';
 import { storage } from './utils/storage';
-import { getAuthPrivateKey, StoredWallet } from './wallet';
+import { getAuthPrivateKey } from './wallet';
+import { promptForOpenAIKey } from './prompts/config';
+import { promptForUserIntent } from './prompts/intent';
+import { promptForToolPermission } from './prompts/permissions';
+import { collectMissingParams } from './prompts/parameters';
 
 export class AgentCLI {
   private program: Command;
-  public agentSigner: AgentSigner | null = null;
+  private agentSigner: AgentSigner | null = null;
+  private litAgent: LitAgent | null = null;
 
   constructor() {
     this.program = new Command();
@@ -15,7 +21,6 @@ export class AgentCLI {
   }
 
   private setupProgram() {
-    // Disable Commander's default error handling
     this.program.exitOverride();
 
     this.program
@@ -25,24 +30,26 @@ export class AgentCLI {
       .action(async () => {
         logger.log('Welcome to Lit Agent CLI');
         await this.initialize();
-        await showMainMenu(this);
+        await this.startInteractiveMode();
       });
   }
 
   private async initialize() {
-    // Check for existing PKP (agent wallet)
+    // Initialize AgentSigner first
+    await this.initializeAgentSigner();
+
+    // Then initialize LitAgent with OpenAI key
+    await this.initializeLitAgent();
+  }
+
+  private async initializeAgentSigner() {
     const pkpInfo = AgentSigner.getPkpInfoFromStorage();
     if (!pkpInfo) {
       logger.info('No agent wallet found. Initializing a new one...');
-
-      // Get auth wallet private key (either from storage or by creating new one)
       const privateKey = await getAuthPrivateKey();
 
       try {
-        // Initialize AgentSigner with auth wallet
         this.agentSigner = await AgentSigner.create(privateKey);
-
-        // Create PKP (agent wallet)
         await this.agentSigner.createWallet();
         logger.success('Agent wallet initialized successfully!');
       } catch (error) {
@@ -50,7 +57,8 @@ export class AgentCLI {
           error instanceof Error &&
           error.message.includes('Insufficient balance')
         ) {
-          const authWallet = storage.getWallet() as StoredWallet;
+          const authWallet = storage.getWallet();
+          if (!authWallet) throw error;
 
           logger.error(
             'Your Auth Wallet does not have enough Lit test tokens to mint the Agent Wallet.'
@@ -67,7 +75,6 @@ export class AgentCLI {
         process.exit(1);
       }
     } else {
-      // PKP exists, initialize AgentSigner with existing auth wallet
       const existingWallet = storage.getWallet();
       if (!existingWallet) {
         logger.error(
@@ -86,16 +93,88 @@ export class AgentCLI {
     }
   }
 
+  private async initializeLitAgent() {
+    if (!this.agentSigner) {
+      throw new Error('AgentSigner must be initialized before LitAgent');
+    }
+
+    const openAiKey = await promptForOpenAIKey();
+    this.litAgent = new LitAgent(this.agentSigner, openAiKey);
+    logger.success('Successfully initialized Lit Agent');
+  }
+
+  private async startInteractiveMode() {
+    if (!this.litAgent) {
+      throw new Error('LitAgent not initialized');
+    }
+
+    while (true) {
+      // Get user intent
+      const userIntent = await promptForUserIntent();
+
+      // Analyze intent and match to tool
+      const result = await this.litAgent.analyzeUserIntentAndMatchAction(
+        userIntent
+      );
+
+      if (!result.matchedTool) {
+        logger.info(result.analysis.reasoning);
+        continue;
+      }
+
+      // Check permissions and prompt if needed
+      if (!result.isPermitted) {
+        const shouldPermit = await promptForToolPermission(result.matchedTool);
+        if (!shouldPermit) {
+          logger.info('Tool permission denied. Returning to main prompt...');
+          continue;
+        }
+
+        try {
+          await this.agentSigner!.pkpPermitLitAction({
+            ipfsCid: result.matchedTool.ipfsCid,
+            signingScopes: [AUTH_METHOD_SCOPE.SignAnything],
+          });
+          logger.success(
+            `Successfully permitted tool: ${result.matchedTool.name}`
+          );
+        } catch (error) {
+          logger.error(`Failed to permit tool: ${error}`);
+          continue;
+        }
+      }
+
+      // Collect any missing parameters
+      try {
+        const allParams = await collectMissingParams(
+          result.matchedTool,
+          result.params
+        );
+
+        // Execute the tool
+        logger.info('Executing tool...');
+        const executionResult = await this.agentSigner!.executeJs({
+          ipfsId: result.matchedTool.ipfsCid,
+          jsParams: allParams,
+        });
+        logger.success('Tool execution completed');
+        logger.log(`Result: ${JSON.stringify(executionResult, null, 2)}`);
+      } catch (error) {
+        logger.error(`Operation failed: ${error}`);
+        continue;
+      }
+    }
+  }
+
   async start() {
     try {
-      this.program.parse();
+      await this.program.parseAsync();
     } catch (err) {
       // Suppress Commander's error output
     }
   }
 }
 
-// Export a function to create and start the CLI
 export function startCLI() {
   const cli = new AgentCLI();
   return cli.start();
