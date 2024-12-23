@@ -44,7 +44,7 @@ export async function listTools(agentSigner: AgentSigner): Promise<void> {
     logger.info('Permitted tools:');
     permittedActions.forEach((action, index) => {
       const base58Cid = hexToBase58(action);
-      const tool = findToolByIpfsCid(action, availableTools);
+      const tool = findToolByIpfsCid(base58Cid, availableTools);
 
       logger.log('\n' + '='.repeat(50));
       if (tool) {
