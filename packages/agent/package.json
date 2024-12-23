@@ -2,6 +2,10 @@
   "name": "@lit-protocol/agent",
   "version": "0.0.1",
   "dependencies": {
+    "@lit-protocol/agent-signer": "workspace:*",
+    "@lit-protocol/agent-tool-registry": "workspace:*",
+    "ethers": "catalog:",
+    "openai": "^4.77.0",
     "tslib": "^2.3.0"
   },
   "type": "commonjs",

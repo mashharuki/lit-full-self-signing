@@ -8,9 +8,26 @@
     "emitDeclarationOnly": false,
     "module": "nodenext",
     "moduleResolution": "nodenext",
-    "types": ["node"]
+    "types": ["node"],
+    "paths": {
+      "@lit-protocol/agent-signer": ["../agent-signer/src"],
+      "@lit-protocol/agent-tool-registry": ["../agent-tool-registry/src"]
+    }
   },
   "include": ["src/**/*.ts"],
-  "references": [],
+  "references": [
+    {
+      "path": "../agent-toolkit/tsconfig.lib.json"
+    },
+    {
+      "path": "../agent-tool-erc20-send/tsconfig.lib.json"
+    },
+    {
+      "path": "../agent-tool-registry/tsconfig.lib.json"
+    },
+    {
+      "path": "../agent-signer/tsconfig.lib.json"
+    }
+  ],
   "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"]
 }
