@@ -8,6 +8,7 @@ export async function promptForToolPermission(
   logger.warn('Tool Permission Required');
   logger.log(`Name: ${tool.name}`);
   logger.log(`Description: ${tool.description}`);
+  logger.log(`IPFS CID: ${tool.ipfsCid}`);
   logger.log('Parameters:');
   tool.parameters.forEach((param) => {
     logger.log(`  - ${param.name}: ${param.description}`);
