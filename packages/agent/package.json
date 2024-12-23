@@ -7,7 +7,8 @@
     "bs58": "^5.0.0",
     "ethers": "catalog:",
     "openai": "^4.77.0",
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "zod": "^3.24.1"
   },
   "type": "commonjs",
   "main": "./dist/index.js",

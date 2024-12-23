@@ -67,3 +67,16 @@ export function isToolSupported(
 ): toolType is SupportedToolTypes {
   return SUPPORTED_TOOLS.includes(toolType as SupportedToolTypes);
 }
+
+export function getToolFromRegistry(toolName: string) {
+  if (!isToolSupported(toolName)) {
+    throw new Error(`Unsupported tool: ${toolName}`);
+  }
+
+  if (toolName === 'SendERC20') return SendERC20;
+
+  // TypeScript will catch if we miss any supported tool
+  throw new Error(
+    `Tool ${toolName} is supported but not implemented in registry`
+  );
+}

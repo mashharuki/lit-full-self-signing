@@ -1,5 +1,9 @@
 import { AgentSigner } from '@lit-protocol/agent-signer';
 import type { ToolInfo } from '@lit-protocol/agent-tool-registry';
+import {
+  isToolSupported,
+  getToolFromRegistry,
+} from '@lit-protocol/agent-tool-registry';
 import { OpenAI } from 'openai';
 
 import { LitAgentError, LitAgentErrorType } from './errors';
@@ -42,6 +46,10 @@ export class LitAgent {
         tool: ToolInfo,
         missingParams: string[]
       ) => Promise<Record<string, string>>;
+      policyCallback?: (
+        tool: ToolInfo,
+        currentPolicy: any | null
+      ) => Promise<{ usePolicy: boolean; policyValues?: any }>;
     } = {}
   ): Promise<{ success: boolean; result?: any; reason?: string }> {
     try {
@@ -70,11 +78,37 @@ export class LitAgent {
       }
 
       // Validate and collect parameters
-      const finalParams = await validateAndCollectParameters(
+      let finalParams = await validateAndCollectParameters(
         tool,
         initialParams,
         options.parameterCallback
       );
+
+      // Handle policy if callback is provided
+      if (options.policyCallback) {
+        const { usePolicy, policyValues } = await options.policyCallback(
+          tool,
+          null
+        );
+        if (usePolicy && policyValues && isToolSupported(tool.name)) {
+          try {
+            const registryTool = getToolFromRegistry(tool.name);
+            // Validate and encode policy
+            registryTool.Policy.schema.parse(policyValues);
+            const encodedPolicy = registryTool.Policy.encode(policyValues);
+            finalParams = {
+              ...finalParams,
+              policy: encodedPolicy,
+            };
+          } catch (error) {
+            throw new LitAgentError(
+              LitAgentErrorType.TOOL_VALIDATION_FAILED,
+              'Invalid policy values',
+              { tool, policyValues, originalError: error }
+            );
+          }
+        }
+      }
 
       // Execute the tool
       const result = await executeAction(this.signer, ipfsCid, finalParams);
