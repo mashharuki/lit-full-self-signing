@@ -1,10 +1,23 @@
 declare global {
-  const ethers: any;
-  const chainInfo: any;
-  const LitAuth: any;
-  const pkp: any;
-  const params: any;
+  // Injected By Lit
   const Lit: any;
+  const LitAuth: any;
+  const ethers: any;
+
+  // Required Inputs
+  const chainInfo: {
+    rpcUrl: string;
+    chainId: number;
+  };
+  const pkp: {
+    ethAddress: string;
+    publicKey: string;
+  };
+  const params: {
+    tokenIn: string;
+    recipientAddress: string;
+    amountIn: string;
+  };
 }
 
 export default async () => {
