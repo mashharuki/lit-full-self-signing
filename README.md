@@ -14,25 +14,6 @@ The Lit AI Agent project consists of several packages that work together to prov
 - `agent-tool-erc20-send`: Example tool implementation for sending ERC20 tokens
 - `agent-toolkit`: Shared utilities and interfaces for building agent tools
 
-## Getting Started
-
-1. Install dependencies:
-```bash
-pnpm install
-```
-
-2. Build all packages:
-```bash
-pnpm nx run-many -t build
-```
-
-3. Try out the CLI:
-```bash
-cd packages/agent-cli
-pnpm link
-lit-agent
-```
-
 ## Development
 
 This is an Nx monorepo using pnpm workspaces. Here's how to work with it:
