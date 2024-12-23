@@ -2,6 +2,7 @@ import inquirer from 'inquirer';
 import { addTools } from './commands/add-tools';
 import { AgentCLI } from './agent-cli';
 import { listTools } from './commands/list-tools';
+import { executeTool } from './commands/execute-tool';
 
 export interface MenuChoice {
   name: string;
@@ -22,6 +23,13 @@ const menuChoices: MenuChoice[] = [
     value: 'list-tools',
     handler: async (cli: AgentCLI) => {
       await listTools(cli.agentSigner!);
+    },
+  },
+  {
+    name: 'Execute Permitted Tool for Agent Wallet',
+    value: 'execute-tool',
+    handler: async (cli: AgentCLI) => {
+      await executeTool(cli.agentSigner!);
     },
   },
 ];
