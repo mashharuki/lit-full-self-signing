@@ -1,6 +1,7 @@
 import inquirer from 'inquirer';
 import type { ToolInfo } from '@lit-protocol/agent-tool-registry';
 import { logger } from '../utils/logger';
+import { promptForChainConfig } from './config';
 
 interface ToolParameters {
   foundParams: Record<string, string>;
@@ -10,7 +11,7 @@ interface ToolParameters {
 export async function collectMissingParams(
   tool: ToolInfo,
   params: ToolParameters
-): Promise<Record<string, string>> {
+): Promise<Record<string, any>> {
   while (true) {
     const allParams = { ...params.foundParams };
 
@@ -41,11 +42,17 @@ export async function collectMissingParams(
       }
     }
 
+    // Get chain configuration
+    const chainConfig = await promptForChainConfig();
+
     // Show all parameters for confirmation
     logger.info('Parameters to be used:');
     Object.entries(allParams).forEach(([key, value]) => {
       logger.log(`  ${key}: ${value}`);
     });
+    logger.log('Chain configuration:');
+    logger.log(`  RPC URL: ${chainConfig.rpcUrl}`);
+    logger.log(`  Chain ID: ${chainConfig.chainId}`);
 
     const { confirmed } = await inquirer.prompt([
       {
@@ -57,7 +64,10 @@ export async function collectMissingParams(
     ]);
 
     if (confirmed) {
-      return allParams;
+      return {
+        ...allParams,
+        chainInfo: chainConfig,
+      };
     }
 
     logger.info('Restarting parameter collection...');

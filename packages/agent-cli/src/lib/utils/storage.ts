@@ -1,7 +1,25 @@
 import { LocalStorage } from 'node-localstorage';
 import { join } from 'path';
 
+export interface ChainConfig {
+  rpcUrl: string;
+  chainId: number;
+}
+
+export const DEFAULT_CHAINS: Record<string, ChainConfig> = {
+  'Base Sepolia': {
+    rpcUrl: 'https://base-sepolia-rpc.publicnode.com',
+    chainId: 84532,
+  },
+  'Base Mainnet': {
+    rpcUrl: 'https://mainnet.base.org',
+    chainId: 8453,
+  },
+};
+
 class Storage {
+  private CHAIN_CONFIG_STORAGE_KEY = 'chain_configs';
+  private LAST_USED_CHAIN_KEY = 'last_used_chain';
   private localStorage: LocalStorage;
 
   constructor() {
@@ -14,8 +32,12 @@ class Storage {
     return this.localStorage.getItem(key);
   }
 
-  setItem(key: string, value: string): void {
-    this.localStorage.setItem(key, value);
+  setItem(key: string, value: string | object): void {
+    if (typeof value === 'object') {
+      this.localStorage.setItem(key, JSON.stringify(value));
+    } else {
+      this.localStorage.setItem(key, value);
+    }
   }
 
   removeItem(key: string): void {
@@ -48,6 +70,29 @@ class Storage {
 
   setWallet(wallet: { address: string; privateKey: string }): void {
     this.setObject('wallet', wallet);
+  }
+
+  getStoredChains(): Record<string, ChainConfig> {
+    const stored = this.getItem(this.CHAIN_CONFIG_STORAGE_KEY);
+    if (!stored) {
+      this.setItem(this.CHAIN_CONFIG_STORAGE_KEY, DEFAULT_CHAINS);
+      return DEFAULT_CHAINS;
+    }
+    return JSON.parse(stored);
+  }
+
+  saveChainConfig(name: string, config: ChainConfig): void {
+    const chains = this.getStoredChains();
+    chains[name] = config;
+    this.setItem(this.CHAIN_CONFIG_STORAGE_KEY, chains);
+  }
+
+  getLastUsedChain(): string | null {
+    return this.getItem(this.LAST_USED_CHAIN_KEY);
+  }
+
+  saveLastUsedChain(name: string): void {
+    this.setItem(this.LAST_USED_CHAIN_KEY, name);
   }
 }
 
