@@ -33,11 +33,19 @@ export async function handleToolPermission(
           null
         );
         if (usePolicy && policyValues) {
-          await signer.setToolPolicy({
-            ipfsCid: tool.ipfsCid,
-            policy: policyValues,
-            version: '1.0.0',
-          });
+          try {
+            await signer.setToolPolicy({
+              ipfsCid: tool.ipfsCid,
+              policy: policyValues,
+              version: '1.0.0',
+            });
+          } catch (error) {
+            // Log the error but don't block the tool permission
+            console.warn(
+              'Failed to set tool policy. Tool will be permitted without a policy.',
+              error instanceof Error ? error.message : String(error)
+            );
+          }
         }
       }
     } else {

@@ -1,4 +1,4 @@
-import { AgentSigner } from '@lit-protocol/agent-signer';
+import { AgentSigner, ExecuteJsParams } from '@lit-protocol/agent-signer';
 import { LitAgentError, LitAgentErrorType } from '../../errors';
 
 export async function executeAction(
@@ -16,7 +16,7 @@ export async function executeAction(
       );
     }
 
-    return await signer.executeJs({
+    const execParams: ExecuteJsParams = {
       ipfsId: ipfsCid,
       jsParams: {
         pkp: {
@@ -25,7 +25,9 @@ export async function executeAction(
         },
         params,
       },
-    });
+    };
+
+    return await signer.executeJs(execParams);
   } catch (error) {
     throw new LitAgentError(
       LitAgentErrorType.TOOL_EXECUTION_FAILED,

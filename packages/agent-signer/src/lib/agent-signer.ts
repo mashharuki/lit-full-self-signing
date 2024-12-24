@@ -7,6 +7,7 @@ import type {
   ExecuteJsResponse,
   LIT_NETWORKS_KEYS,
   SigResponse,
+  JsonExecutionSdkParams,
 } from '@lit-protocol/types';
 import {
   AUTH_METHOD_SCOPE,
@@ -15,11 +16,11 @@ import {
 
 import {
   CapacityCreditMintOptions,
-  ExecuteJsParams,
   SetToolPolicyOptions,
   ToolPolicy,
   RegisteredTools,
   PkpInfo,
+  ExecuteJsParams,
 } from './types';
 import { LocalStorageImpl } from './storage';
 import {
@@ -228,10 +229,13 @@ export class AgentSigner {
     );
 
     try {
-      return this.litNodeClient.executeJs({
-        sessionSigs,
+      // Convert our simpler ExecuteJsParams to JsonExecutionSdkParams
+      const execParams: JsonExecutionSdkParams = {
         ...params,
-      });
+        sessionSigs,
+      };
+
+      return this.litNodeClient.executeJs(execParams);
     } catch (error: unknown) {
       if (error instanceof Error) {
         throw new Error(`Failed to execute JS: ${error.message}`);

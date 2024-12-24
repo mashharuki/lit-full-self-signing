@@ -1,27 +1,54 @@
-import type { AuthSig, MintWithAuthResponse } from '@lit-protocol/types';
-import type { ethers } from 'ethers';
+import type { ContractTransaction } from 'ethers';
+import type { ExecuteJsResponse, SigResponse } from '@lit-protocol/types';
 
-export type PkpInfo = MintWithAuthResponse<ethers.ContractReceipt>['pkp'];
+export interface PkpInfo {
+  tokenId: string;
+  publicKey: string;
+  ethAddress: string;
+}
 
-export type CapacityCreditMintOptions = {
+export interface CapacityCreditMintOptions {
   requestsPerKilosecond?: number;
   daysUntilUTCMidnightExpiration?: number;
-};
+}
 
-export type CapacityCreditDelegationAuthSigOptions = {
+export interface CapacityCreditDelegationAuthSigOptions {
   delegateeAddresses: string[];
   uses?: string;
   expiration?: string;
-};
+}
 
-export type PkpSessionSigsOptions = {
-  capacityDelegationAuthSig?: AuthSig;
+export interface PkpSessionSigsOptions {
+  capacityDelegationAuthSig?: any;
   expiration?: string;
-};
+}
 
-export type ExecuteJsParams = {
-  jsParams: object;
-} & ({ code: string; ipfsId?: never } | { code?: never; ipfsId: string });
+/**
+ * Parameters for executing JavaScript code
+ * Note: sessionSigs are handled internally by the AgentSigner
+ */
+export interface ExecuteJsParams {
+  /**
+   * JavaScript code to execute. Required if ipfsId is not provided.
+   */
+  code?: string;
+  /**
+   * IPFS CID of the JavaScript code to execute. Required if code is not provided.
+   */
+  ipfsId?: string;
+  /**
+   * Optional authentication signature
+   */
+  authSig?: any;
+  /**
+   * Optional parameters to pass to the JavaScript code
+   */
+  jsParams?: Record<string, any>;
+  /**
+   * Enable debug mode
+   */
+  debug?: boolean;
+}
 
 /**
  * Options for setting a tool policy
@@ -71,4 +98,19 @@ export interface RegisteredTools {
    * Array of policy versions
    */
   versions: string[];
+}
+
+export interface AgentSigner {
+  setToolPolicy(options: SetToolPolicyOptions): Promise<ContractTransaction>;
+  removeToolPolicy(ipfsCid: string): Promise<ContractTransaction>;
+  getToolPolicy(ipfsCid: string): Promise<ToolPolicy>;
+  getRegisteredTools(): Promise<RegisteredTools>;
+  executeJs(params: ExecuteJsParams): Promise<ExecuteJsResponse>;
+  pkpSign({ toSign }: { toSign: string }): Promise<SigResponse>;
+  pkpPermitLitAction(params: {
+    ipfsCid: string;
+    signingScopes?: string[];
+  }): Promise<any>;
+  pkpListPermittedActions(): Promise<any>;
+  disconnectLitNodeClient(): Promise<void>;
 }
