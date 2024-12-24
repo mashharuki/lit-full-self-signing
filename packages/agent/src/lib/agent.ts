@@ -96,19 +96,16 @@ export class LitAgent {
             reason: error.message,
           };
         }
-        // For policy registration errors, return failure
+        // For policy registration errors, log and continue
         if (
           error instanceof LitAgentError &&
           error.type === LitAgentErrorType.TOOL_POLICY_REGISTRATION_FAILED
         ) {
-          return {
-            success: false,
-            reason: error.message,
-          };
+          console.error('Failed to register policy:', error);
+          // Continue without policy
+        } else {
+          throw error;
         }
-
-        console.log('THIS ERROR', error);
-        throw error;
       }
 
       // Validate and collect parameters
