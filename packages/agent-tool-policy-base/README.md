@@ -44,7 +44,7 @@ const MyToolPolicySchema = BaseLitActionPolicySchema.extend({
 registerPolicy<MyToolPolicy>('MyTool', {
   schema: MyToolPolicySchema,
   encode: (policy) => encodeMyToolPolicy(policy),
-  decode: (bytes) => decodeMyToolPolicy(bytes)
+  decode: (bytes, version) => decodeMyToolPolicy(bytes, version)
 });
 
 // 4. Use the policy in your tool
@@ -66,7 +66,7 @@ const policy = validatePolicy<SendERC20Policy>('SendERC20', {
 const encoded = encodePolicy('SendERC20', policy);
 
 // Decode a policy from on-chain data
-const decoded = decodePolicy<SendERC20Policy>('SendERC20', encoded);
+const decoded = decodePolicy<SendERC20Policy>('SendERC20', encoded, '1.0.0');
 ```
 
 ## Policy System

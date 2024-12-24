@@ -27,8 +27,9 @@ describe('agent-tool-policy', () => {
     return JSON.stringify(policy);
   };
 
-  const mockDecode = (encoded: string): TestPolicy => {
-    return JSON.parse(encoded);
+  const mockDecode = (encoded: string, version: string): TestPolicy => {
+    const decoded = JSON.parse(encoded);
+    return { ...decoded, version };
   };
 
   beforeEach(() => {
@@ -107,7 +108,11 @@ describe('agent-tool-policy', () => {
 
     it('should successfully decode a policy', () => {
       const encoded = JSON.stringify(testPolicy);
-      const decoded = decodePolicy<TestPolicy>('TestPolicy', encoded);
+      const decoded = decodePolicy<TestPolicy>(
+        'TestPolicy',
+        encoded,
+        testPolicy.version
+      );
       expect(decoded).toEqual(testPolicy);
     });
 
@@ -118,9 +123,9 @@ describe('agent-tool-policy', () => {
     });
 
     it('should throw error when decoding unregistered policy', () => {
-      expect(() => decodePolicy('UnregisteredPolicy', '{}')).toThrowError(
-        /No policy definition found/
-      );
+      expect(() =>
+        decodePolicy('UnregisteredPolicy', '{}', '1.0.0')
+      ).toThrowError(/No policy definition found/);
     });
   });
 

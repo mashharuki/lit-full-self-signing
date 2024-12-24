@@ -121,7 +121,10 @@ export class LitAgent {
         const currentPolicy = await this.signer.getToolPolicy(ipfsCid);
         if (currentPolicy.policy !== '0x' && currentPolicy.version !== '') {
           const registryTool = getToolFromRegistry(tool.name);
-          decodedPolicy = registryTool.Policy.decode(currentPolicy.policy);
+          decodedPolicy = registryTool.Policy.decode(
+            currentPolicy.policy,
+            currentPolicy.version
+          );
         }
       } catch (error) {
         // If policy registry is not initialized or there's no policy, continue without it

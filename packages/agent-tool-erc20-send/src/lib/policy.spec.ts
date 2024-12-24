@@ -185,7 +185,7 @@ describe('SendERC20Policy', () => {
   describe('decodeSendERC20Policy', () => {
     it('should decode an encoded policy correctly', () => {
       const encoded = encodeSendERC20Policy(validPolicy);
-      const decoded = decodeSendERC20Policy(encoded);
+      const decoded = decodeSendERC20Policy(encoded, validPolicy.version);
 
       // Compare with normalized addresses
       const normalizedPolicy = {
@@ -204,7 +204,7 @@ describe('SendERC20Policy', () => {
     it('should throw on invalid encoded data', () => {
       const invalidEncoded = '0x1234'; // Invalid encoded data
       expect(() => {
-        decodeSendERC20Policy(invalidEncoded);
+        decodeSendERC20Policy(invalidEncoded, '1.0.0');
       }).toThrow();
     });
 
@@ -225,7 +225,7 @@ describe('SendERC20Policy', () => {
 
       testCases.forEach((policy) => {
         const encoded = encodeSendERC20Policy(policy);
-        const decoded = decodeSendERC20Policy(encoded);
+        const decoded = decodeSendERC20Policy(encoded, policy.version);
 
         // Normalize addresses in the original policy for comparison
         const normalizedPolicy = {

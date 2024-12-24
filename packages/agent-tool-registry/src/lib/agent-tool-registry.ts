@@ -30,7 +30,8 @@ export const SendERC20 = {
     type: {} as SendERC20Policy,
     schema: SendERC20PolicySchema,
     encode: encodeSendERC20Policy,
-    decode: decodeSendERC20Policy,
+    decode: (encodedPolicy: string, version: string) =>
+      decodeSendERC20Policy(encodedPolicy, version),
   },
 } as const;
 

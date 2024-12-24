@@ -41,6 +41,7 @@ export interface SendERC20LitActionParameters {
  */
 export const SendERC20LitActionMetadata = {
   name: 'SendERC20LitAction',
+  version: '1.0.0',
   description: sendERC20LitActionDescription,
   parameters: SendERC20LitActionParameterDescriptions,
   required: [

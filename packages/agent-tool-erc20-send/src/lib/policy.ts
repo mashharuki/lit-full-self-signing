@@ -52,7 +52,10 @@ export function encodeSendERC20Policy(policy: SendERC20Policy): string {
   );
 }
 
-export function decodeSendERC20Policy(encodedPolicy: string): SendERC20Policy {
+export function decodeSendERC20Policy(
+  encodedPolicy: string,
+  version: string
+): SendERC20Policy {
   const decoded = ethers.utils.defaultAbiCoder.decode(
     [
       'tuple(uint256 maxAmount, address[] allowedTokens, address[] allowedRecipients)',
@@ -62,7 +65,7 @@ export function decodeSendERC20Policy(encodedPolicy: string): SendERC20Policy {
 
   const policy: SendERC20Policy = {
     type: 'SendERC20',
-    version: '1.0.0',
+    version,
     maxAmount: decoded.maxAmount.toString(),
     allowedTokens: decoded.allowedTokens,
     allowedRecipients: decoded.allowedRecipients,
