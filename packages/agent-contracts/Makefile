@@ -11,7 +11,7 @@ deploy-registry: ## Deploy the Lit Agent Registry contract
 		exit 1; \
 	fi
 	@echo "Deploying Lit Agent Registry to $(CHAIN_TO_DEPLOY_TO_RPC_URL)..."
-	@forge script -vvv script/DeployLitAgentRegistry.s.sol:DeployLitAgentRegistry \
+	@forge script -vvv script/DeployPKPToolPolicyRegistry.s.sol:DeployPKPToolPolicyRegistry \
 		--rpc-url $(CHAIN_TO_DEPLOY_TO_RPC_URL) \
 		--broadcast \
 		--private-key $(FORGE_DEPLOYER_PRIVATE_KEY) 
@@ -26,7 +26,7 @@ deploy-registry: ## Deploy the Lit Agent Registry contract
 # 		exit 1; \
 # 	fi
 # 	@echo "Deploying Lit Agent Registry to $(CHAIN_TO_DEPLOY_TO_RPC_URL)..."
-# 	@forge script -vvv script/DeployLitAgentRegistry.s.sol:DeployLitAgentRegistry \
+# 	@forge script -vvv script/DeployPKPToolPolicyRegistry.s.sol:DeployPKPToolPolicyRegistry \
 # 		--rpc-url $(CHAIN_TO_DEPLOY_TO_RPC_URL) \
 # 		--broadcast \
 # 		--private-key $(LIT_AGENT_REGISTRY_DEPLOYER_PRIVATE_KEY)
@@ -52,7 +52,7 @@ deploy-registry: ## Deploy the Lit Agent Registry contract
 # 		--etherscan-api-key $(ETHERSCAN_API_KEY) \
 # 		--compiler-version v0.8.24+commit.f704f362 \
 # 		$(REGISTRY_ADDRESS) \
-# 		src/LitAgentRegistry.sol:LitAgentRegistry
+# 		src/PKPToolPolicyRegistry.sol:PKPToolPolicyRegistry
 
 build:
 	forge build

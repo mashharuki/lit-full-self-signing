@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import "forge-std/Script.sol";
-import "../src/LitAgentRegistry.sol";
+import "../src/PKPToolPolicyRegistry.sol";
 
 interface ICreateX {
     struct Values {
@@ -19,7 +19,7 @@ interface ICreateX {
     function computeCreate3Address(bytes32 salt) external view returns (address computedAddress);
 }
 
-contract DeployLitAgentRegistry is Script {
+contract DeployPKPToolPolicyRegistry is Script {
     // CREATEX contract address
     address constant CREATEX = 0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed;
     // CREATEX deployer address that needs to be funded
@@ -87,7 +87,7 @@ contract DeployLitAgentRegistry is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         // Deploy the registry using CREATEX
-        bytes memory creationCode = type(LitAgentRegistry).creationCode;
+        bytes memory creationCode = type(PKPToolPolicyRegistry).creationCode;
         address actualAddress;
         try ICreateX(CREATEX).deployCreate3(salt, creationCode) returns (address deployed) {
             actualAddress = deployed;
@@ -109,6 +109,6 @@ contract DeployLitAgentRegistry is Script {
         }
         require(codeSize > 0, "Contract deployment failed");
         
-        console.log("LitAgentRegistry successfully deployed to:", actualAddress);
+        console.log("PKPToolPolicyRegistry successfully deployed to:", actualAddress);
     }
 } 

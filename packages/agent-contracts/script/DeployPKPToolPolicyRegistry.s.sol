@@ -2,9 +2,9 @@
 pragma solidity ^0.8.24;
 
 import "forge-std/Script.sol";
-import "../src/LitAgentRegistry.sol";
+import "../src/PKPToolPolicyRegistry.sol";
 
-contract DeployLitAgentRegistry is Script {
+contract DeployPKPToolPolicyRegistry is Script {
     function run() external {
         // Get private key from environment variable
         uint256 deployerPrivateKey = vm.envUint("FORGE_DEPLOYER_PRIVATE_KEY");
@@ -13,12 +13,12 @@ contract DeployLitAgentRegistry is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         // Deploy the registry
-        LitAgentRegistry registry = new LitAgentRegistry();
+        PKPToolPolicyRegistry registry = new PKPToolPolicyRegistry();
         
         // Stop broadcasting transactions
         vm.stopBroadcast();
 
         // Log the deployment
-        console.log("LitAgentRegistry deployed to:", address(registry));
+        console.log("PKPToolPolicyRegistry deployed to:", address(registry));
     }
 } 
