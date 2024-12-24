@@ -1,44 +1,51 @@
 import { LitContracts } from '@lit-protocol/contracts-sdk';
-import {
-  AUTH_METHOD_SCOPE,
-  AUTH_METHOD_SCOPE_VALUES,
-  LIT_ABILITY,
-  LIT_RPC,
-} from '@lit-protocol/constants';
+import { LIT_RPC } from '@lit-protocol/constants';
 import { LIT_NETWORK } from '@lit-protocol/constants';
 import { LitNodeClientNodeJs } from '@lit-protocol/lit-node-client-nodejs';
 import { ethers } from 'ethers';
 import type {
-  AuthSig,
   ExecuteJsResponse,
   LIT_NETWORKS_KEYS,
-  MintWithAuthResponse,
   SigResponse,
 } from '@lit-protocol/types';
-import { generateAuthSig } from '@lit-protocol/auth-helpers';
-import { createSiweMessage } from '@lit-protocol/auth-helpers';
-import { LitActionResource, LitPKPResource } from '@lit-protocol/auth-helpers';
 
-import { localStorage } from './localstorage';
 import {
-  CapacityCreditDelegationAuthSigOptions,
   CapacityCreditMintOptions,
   ExecuteJsParams,
+  SetToolPolicyOptions,
+  ToolPolicy,
+  RegisteredTools,
   PkpInfo,
-  PkpSessionSigsOptions,
 } from './types';
+import { LocalStorageImpl } from './storage';
+import {
+  loadPkpFromStorage,
+  createPkpWallet,
+  permitLitAction,
+  listPermittedActions,
+  loadCapacityCreditFromStorage,
+  requiresCapacityCredit,
+  mintCapacityCredit,
+  getCapacityCreditDelegationAuthSig,
+  getPkpSessionSigs,
+  createToolPolicyContract,
+  setToolPolicy,
+  removeToolPolicy,
+  getToolPolicy,
+  getRegisteredTools,
+} from './utils';
 
 export class AgentSigner {
   private litNodeClient: LitNodeClientNodeJs | null = null;
   private ethersWallet: ethers.Wallet | null = null;
   private litContracts: LitContracts | null = null;
-  private pkp: PkpInfo | null = null;
-  private capacityCreditId: string | null = null;
+  private toolPolicyContract: ethers.Contract | null = null;
+  private pkpInfo: PkpInfo | null = null;
+
+  private storage = new LocalStorageImpl();
 
   /**
    * Initialize the SDK
-   * @param authKey The authentication key
-   * @returns A Promise that resolves to a new LitClient instance
    */
   static async create(
     authPrivateKey: string,
@@ -52,12 +59,14 @@ export class AgentSigner {
   ): Promise<AgentSigner> {
     const agentSigner = new AgentSigner();
 
+    // Initialize Lit Node Client
     agentSigner.litNodeClient = new LitNodeClientNodeJs({
       litNetwork,
       debug,
     });
     await agentSigner.litNodeClient.connect();
 
+    // Initialize Ethers Wallet
     agentSigner.ethersWallet = new ethers.Wallet(
       authPrivateKey,
       new ethers.providers.JsonRpcProvider(LIT_RPC.CHRONICLE_YELLOWSTONE)
@@ -70,6 +79,7 @@ export class AgentSigner {
       );
     }
 
+    // Initialize Lit Contracts
     agentSigner.litContracts = new LitContracts({
       signer: agentSigner.ethersWallet,
       network: litNetwork,
@@ -77,262 +87,112 @@ export class AgentSigner {
     });
     await agentSigner.litContracts.connect();
 
-    // Load PKP and capacity credit ID from storage
-    try {
-      const pkp = localStorage.getItem('pkp');
-      if (pkp) {
-        agentSigner.pkp = JSON.parse(
-          pkp
-        ) as MintWithAuthResponse<ethers.ContractReceipt>['pkp'];
-      }
-
-      const capacityCreditId = localStorage.getItem('capacityCreditId');
-      if (capacityCreditId) {
-        agentSigner.capacityCreditId = capacityCreditId;
-      }
-    } catch (error) {
-      // If storage files don't exist yet, that's okay - we'll create them when needed
-      console.log('Storage not initialized yet: ', error);
-    }
+    // Load PKP from storage
+    agentSigner.pkpInfo = loadPkpFromStorage(agentSigner.storage);
 
     return agentSigner;
   }
 
-  static getPkpInfoFromStorage(): PkpInfo | null {
-    const pkp = localStorage.getItem('pkp');
-    if (pkp) {
-      return JSON.parse(pkp) as PkpInfo;
-    }
-    return null;
-  }
-
-  static getCapacityCreditIdFromStorage(): string | null {
-    const capacityCreditId = localStorage.getItem('capacityCreditId');
-    if (capacityCreditId) {
-      return capacityCreditId;
-    }
-    return null;
-  }
-
-  private litNetworkRequiresCapacityCredit(): boolean {
+  /**
+   * Create a new PKP wallet
+   */
+  async createWallet(options: CapacityCreditMintOptions = {}) {
     if (!this.litContracts) {
       throw new Error('Agent signer not properly initialized');
     }
 
-    return (
-      this.litContracts.network === LIT_NETWORK.DatilTest ||
-      this.litContracts.network === LIT_NETWORK.Datil
-    );
+    // Create PKP wallet
+    const walletInfo = await createPkpWallet(this.litContracts, this.storage);
+    this.pkpInfo = walletInfo.pkpInfo;
+
+    // Mint capacity credit if needed
+    if (this.litContracts) {
+      await mintCapacityCredit(this.litContracts, this.storage, options);
+    }
+
+    return walletInfo;
   }
 
-  private async mintCapacityCredit({
-    requestsPerKilosecond = 10,
-    daysUntilUTCMidnightExpiration = 1,
-  }: CapacityCreditMintOptions) {
-    if (!this.litContracts || !this.ethersWallet) {
-      throw new Error('Agent signer not properly initialized');
-    }
-
-    if (this.litNetworkRequiresCapacityCredit()) {
-      const capacityCreditInfo = await this.litContracts.mintCapacityCreditsNFT(
-        {
-          requestsPerKilosecond,
-          daysUntilUTCMidnightExpiration,
-        }
-      );
-      localStorage.setItem(
-        'capacityCreditId',
-        capacityCreditInfo.capacityTokenIdStr
-      );
-      this.capacityCreditId = capacityCreditInfo.capacityTokenIdStr;
-    }
-
-    return this.capacityCreditId;
-  }
-
-  private async getCapacityCreditDelegationAuthSig({
-    delegateeAddresses,
-    uses = '1',
-    expiration = new Date(Date.now() + 1000 * 60 * 10).toISOString(), // 10 minutes from now
-  }: CapacityCreditDelegationAuthSigOptions) {
-    if (!this.litNodeClient || !this.ethersWallet) {
-      throw new Error('Agent signer not properly initialized');
-    }
-
-    if (!this.capacityCreditId) {
-      throw new Error('Capacity credit ID not set');
-    }
-
-    const result = await this.litNodeClient.createCapacityDelegationAuthSig({
-      dAppOwnerWallet: this.ethersWallet,
-      capacityTokenId: this.capacityCreditId,
-      delegateeAddresses,
-      uses,
-      expiration,
-    });
-
-    return result.capacityDelegationAuthSig;
-  }
-
-  private async getPkpSessionSigs({
-    capacityDelegationAuthSig,
-    expiration = new Date(Date.now() + 1000 * 60 * 10).toISOString(), // 10 minutes from now
-  }: PkpSessionSigsOptions) {
-    if (!this.litNodeClient || !this.ethersWallet || !this.pkp) {
-      throw new Error('Agent signer not properly initialized or PKP not set');
-    }
-
-    // Store references after null check to appease TypeScript
-    const wallet = this.ethersWallet;
-    const litNodeClient = this.litNodeClient;
-
-    return this.litNodeClient.getSessionSigs({
-      chain: 'ethereum',
-      expiration,
-      capabilityAuthSigs: capacityDelegationAuthSig
-        ? [capacityDelegationAuthSig]
-        : undefined,
-      resourceAbilityRequests: [
-        {
-          resource: new LitActionResource('*'),
-          ability: LIT_ABILITY.LitActionExecution,
-        },
-        {
-          resource: new LitPKPResource('*'),
-          ability: LIT_ABILITY.PKPSigning,
-        },
-      ],
-      authNeededCallback: async ({
-        uri,
-        expiration,
-        resourceAbilityRequests,
-      }) => {
-        const toSign = await createSiweMessage({
-          uri,
-          expiration,
-          resources: resourceAbilityRequests,
-          walletAddress: await wallet.getAddress(),
-          nonce: await litNodeClient.getLatestBlockhash(),
-          litNodeClient,
-        });
-
-        return await generateAuthSig({
-          signer: wallet,
-          toSign,
-        });
-      },
-    });
-  }
-
-  async disconnectLitNodeClient() {
-    if (this.litNodeClient) {
-      await this.litNodeClient.disconnect();
-    }
-  }
-
-  async createWallet({
-    requestsPerKilosecond,
-    daysUntilUTCMidnightExpiration,
-  }: CapacityCreditMintOptions = {}): Promise<{
-    pkpInfo: PkpInfo;
-    pkpMintTx: ethers.ContractTransaction;
-    pkpMintReceipt: MintWithAuthResponse<ethers.ContractReceipt>;
-  }> {
-    if (!this.litContracts || !this.ethersWallet) {
-      throw new Error('Agent signer not properly initialized');
-    }
-
-    const mintMetadata =
-      await this.litContracts.pkpNftContractUtils.write.mint();
-
-    // Save to storage
-    localStorage.setItem('pkp', JSON.stringify(mintMetadata.pkp));
-    this.pkp = mintMetadata.pkp;
-
-    await this.mintCapacityCredit({
-      requestsPerKilosecond,
-      daysUntilUTCMidnightExpiration,
-    });
-
-    return {
-      pkpInfo: mintMetadata.pkp,
-      pkpMintTx: mintMetadata.tx,
-      pkpMintReceipt: mintMetadata.res,
-    };
-  }
-
-  async pkpPermitLitAction({
-    ipfsCid,
-    signingScopes = [AUTH_METHOD_SCOPE.SignAnything],
-  }: {
-    ipfsCid: string;
-    signingScopes?: AUTH_METHOD_SCOPE_VALUES[];
-  }) {
-    if (!this.ethersWallet || !this.pkp || !this.litContracts) {
-      throw new Error('Agent signer not properly initialized or PKP not set');
-    }
-
-    return this.litContracts.addPermittedAction({
-      ipfsId: ipfsCid,
-      authMethodScopes: signingScopes,
-      pkpTokenId: this.pkp.tokenId,
-    });
-  }
-
-  async pkpListPermittedActions() {
-    if (!this.ethersWallet || !this.pkp || !this.litContracts) {
-      throw new Error('Agent signer not properly initialized or PKP not set');
-    }
-
-    return this.litContracts.pkpPermissionsContractUtils.read.getPermittedActions(
-      this.pkp.tokenId
-    );
-  }
-
+  /**
+   * Sign data with the PKP
+   */
   async pkpSign({ toSign }: { toSign: string }): Promise<SigResponse> {
-    if (!this.litNodeClient || !this.pkp) {
-      throw new Error('Agent signer not properly initialized or PKP not set');
+    if (!this.litNodeClient || !this.litContracts || !this.ethersWallet) {
+      throw new Error('Agent signer not properly initialized');
     }
 
-    let capacityDelegationAuthSig: AuthSig | undefined;
-    if (this.litNetworkRequiresCapacityCredit()) {
-      capacityDelegationAuthSig = await this.getCapacityCreditDelegationAuthSig(
+    if (!this.pkpInfo) {
+      throw new Error('PKP not set');
+    }
+
+    let capacityDelegationAuthSig;
+    if (requiresCapacityCredit(this.litContracts)) {
+      const capacityCreditId = loadCapacityCreditFromStorage(this.storage);
+      if (!capacityCreditId) {
+        throw new Error('Capacity credit not found');
+      }
+
+      capacityDelegationAuthSig = await getCapacityCreditDelegationAuthSig(
+        this.litNodeClient,
+        this.ethersWallet,
+        capacityCreditId,
         {
-          delegateeAddresses: [this.pkp.ethAddress],
+          delegateeAddresses: [this.pkpInfo.ethAddress],
         }
       );
     }
 
-    const sessionSigs = await this.getPkpSessionSigs({
-      capacityDelegationAuthSig,
-    });
+    const sessionSigs = await getPkpSessionSigs(
+      this.litNodeClient,
+      this.ethersWallet,
+      {
+        capacityDelegationAuthSig,
+      }
+    );
 
-    const signingResult = await this.litNodeClient.pkpSign({
-      pubKey: this.pkp.publicKey,
+    return this.litNodeClient.pkpSign({
+      pubKey: this.pkpInfo.publicKey,
       sessionSigs,
       toSign: ethers.utils.arrayify(toSign),
     });
-
-    return signingResult;
   }
 
+  /**
+   * Execute JavaScript code
+   */
   async executeJs(params: ExecuteJsParams): Promise<ExecuteJsResponse> {
-    if (!this.litNodeClient || !this.pkp) {
-      throw new Error('Agent signer not properly initialized or PKP not set');
+    if (!this.litNodeClient || !this.litContracts || !this.ethersWallet) {
+      throw new Error('Agent signer not properly initialized');
     }
 
-    let capacityDelegationAuthSig: AuthSig | undefined;
-    if (this.litNetworkRequiresCapacityCredit()) {
-      capacityDelegationAuthSig = await this.getCapacityCreditDelegationAuthSig(
+    if (!this.pkpInfo) {
+      throw new Error('PKP not set');
+    }
+
+    let capacityDelegationAuthSig;
+    if (requiresCapacityCredit(this.litContracts)) {
+      const capacityCreditId = loadCapacityCreditFromStorage(this.storage);
+      if (!capacityCreditId) {
+        throw new Error('Capacity credit not found');
+      }
+
+      capacityDelegationAuthSig = await getCapacityCreditDelegationAuthSig(
+        this.litNodeClient,
+        this.ethersWallet,
+        capacityCreditId,
         {
-          delegateeAddresses: [this.pkp.ethAddress],
+          delegateeAddresses: [this.pkpInfo.ethAddress],
         }
       );
     }
 
-    const sessionSigs = await this.getPkpSessionSigs({
-      capacityDelegationAuthSig,
-    });
+    const sessionSigs = await getPkpSessionSigs(
+      this.litNodeClient,
+      this.ethersWallet,
+      {
+        capacityDelegationAuthSig,
+      }
+    );
 
     try {
       return this.litNodeClient.executeJs({
@@ -344,6 +204,91 @@ export class AgentSigner {
         throw new Error(`Failed to execute JS: ${error.message}`);
       }
       throw error;
+    }
+  }
+
+  /**
+   * Initialize the tool policy registry
+   */
+  async initToolPolicyRegistry(contractAddress: string) {
+    if (!this.ethersWallet) {
+      throw new Error('Agent signer not properly initialized');
+    }
+
+    this.toolPolicyContract = createToolPolicyContract(
+      contractAddress,
+      this.ethersWallet.provider
+    );
+  }
+
+  /**
+   * Set or update a policy for a specific tool
+   */
+  async setToolPolicy(
+    options: SetToolPolicyOptions
+  ): Promise<ethers.ContractTransaction> {
+    if (!this.toolPolicyContract || !this.ethersWallet || !this.pkpInfo) {
+      throw new Error('Tool policy manager not initialized');
+    }
+
+    return setToolPolicy(
+      this.toolPolicyContract,
+      this.pkpInfo.ethAddress,
+      (toSign: string) => this.pkpSign({ toSign }),
+      this.ethersWallet.provider,
+      options
+    );
+  }
+
+  /**
+   * Remove a policy for a specific tool
+   */
+  async removeToolPolicy(ipfsCid: string): Promise<ethers.ContractTransaction> {
+    if (!this.toolPolicyContract || !this.ethersWallet || !this.pkpInfo) {
+      throw new Error('Tool policy manager not initialized');
+    }
+
+    return removeToolPolicy(
+      this.toolPolicyContract,
+      this.pkpInfo.ethAddress,
+      (toSign: string) => this.pkpSign({ toSign }),
+      this.ethersWallet.provider,
+      ipfsCid
+    );
+  }
+
+  /**
+   * Get the policy for a specific tool
+   */
+  async getToolPolicy(ipfsCid: string): Promise<ToolPolicy> {
+    if (!this.toolPolicyContract || !this.pkpInfo) {
+      throw new Error('Tool policy manager not initialized');
+    }
+
+    return getToolPolicy(
+      this.toolPolicyContract,
+      this.pkpInfo.ethAddress,
+      ipfsCid
+    );
+  }
+
+  /**
+   * Get all registered tools and their policies
+   */
+  async getRegisteredTools(): Promise<RegisteredTools> {
+    if (!this.toolPolicyContract || !this.pkpInfo) {
+      throw new Error('Tool policy manager not initialized');
+    }
+
+    return getRegisteredTools(this.toolPolicyContract, this.pkpInfo.ethAddress);
+  }
+
+  /**
+   * Disconnect from the Lit Node Client
+   */
+  async disconnectLitNodeClient() {
+    if (this.litNodeClient) {
+      await this.litNodeClient.disconnect();
     }
   }
 }
