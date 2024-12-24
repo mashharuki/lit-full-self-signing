@@ -21,6 +21,7 @@ import {
   RegisteredTools,
   PkpInfo,
   ExecuteJsParams,
+  ToolPolicyRegistryConfig,
 } from './types';
 import { LocalStorageImpl } from './storage';
 import {
@@ -65,12 +66,15 @@ export class AgentSigner {
     {
       litNetwork = LIT_NETWORK.DatilTest,
       debug = false,
-      toolPolicyRegistryAddress,
+      toolPolicyRegistryConfig = {
+        rpcUrl: LIT_RPC.CHRONICLE_YELLOWSTONE,
+        contractAddress: '0xD78e1C1183A29794A092dDA7dB526A91FdE36020',
+      },
     }: {
       litNetwork?: LIT_NETWORKS_KEYS;
       debug?: boolean;
-      toolPolicyRegistryAddress?: string;
-    } = {}
+      toolPolicyRegistryConfig?: ToolPolicyRegistryConfig;
+    }
   ): Promise<AgentSigner> {
     const agentSigner = new AgentSigner();
 
@@ -84,7 +88,7 @@ export class AgentSigner {
     // Initialize Ethers Wallet
     agentSigner.ethersWallet = new ethers.Wallet(
       authPrivateKey,
-      new ethers.providers.JsonRpcProvider(LIT_RPC.CHRONICLE_YELLOWSTONE)
+      new ethers.providers.JsonRpcProvider(toolPolicyRegistryConfig.rpcUrl)
     );
 
     const ethersWalletBalance = await agentSigner.ethersWallet.getBalance();
@@ -105,9 +109,17 @@ export class AgentSigner {
     // Load PKP from storage
     agentSigner.pkpInfo = loadPkpFromStorage(agentSigner.storage);
 
-    // Initialize tool policy registry if address provided
-    if (toolPolicyRegistryAddress) {
-      await agentSigner.initToolPolicyRegistry(toolPolicyRegistryAddress);
+    // Initialize tool policy registry
+    try {
+      await agentSigner.initToolPolicyRegistry(
+        toolPolicyRegistryConfig.contractAddress
+      );
+    } catch (error) {
+      throw new Error(
+        `Failed to initialize tool policy registry at ${
+          toolPolicyRegistryConfig.contractAddress
+        }: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
 
     return agentSigner;
@@ -118,13 +130,24 @@ export class AgentSigner {
    */
   private async initToolPolicyRegistry(contractAddress: string) {
     if (!this.ethersWallet) {
-      throw new Error('Agent signer not properly initialized');
+      throw new Error(
+        'Cannot initialize tool policy registry: Agent signer not properly initialized'
+      );
     }
 
-    this.toolPolicyContract = createToolPolicyContract(
-      contractAddress,
-      this.ethersWallet.provider
-    );
+    try {
+      this.toolPolicyContract = createToolPolicyContract(
+        contractAddress,
+        this.ethersWallet.provider
+      );
+
+      // Verify the contract exists by calling a view function
+      await this.toolPolicyContract.owner();
+    } catch (error) {
+      throw new Error(
+        `Failed to initialize tool policy registry: Contract not found at ${contractAddress} or is not a valid tool policy registry`
+      );
+    }
   }
 
   /**

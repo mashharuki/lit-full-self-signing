@@ -27,14 +27,25 @@ export class LitAgent {
   constructor(
     private readonly litAuthPrivateKey: string,
     openAiApiKey: string,
-    openAiModel = 'gpt-4o-mini'
+    openAiModel = 'gpt-4o-mini',
+    private readonly toolPolicyRegistryConfig?: {
+      rpcUrl?: string;
+      contractAddress: string;
+    }
   ) {
     this.openai = new OpenAI({ apiKey: openAiApiKey });
     this.openAiModel = openAiModel;
   }
 
   public async init(): Promise<void> {
-    this.signer = await initializeSigner(this.litAuthPrivateKey);
+    this.signer = await initializeSigner(this.litAuthPrivateKey, {
+      rpcUrl:
+        this.toolPolicyRegistryConfig?.rpcUrl ??
+        'https://yellowstone-rpc.litprotocol.com/',
+      contractAddress:
+        this.toolPolicyRegistryConfig?.contractAddress ??
+        '0xD78e1C1183A29794A092dDA7dB526A91FdE36020',
+    });
   }
 
   public async executeTool(

@@ -1,102 +1,86 @@
 import inquirer from 'inquirer';
-import { storage, ChainConfig } from '../utils/storage';
+import { logger } from '../utils/logger';
 
-const OPENAI_KEY_STORAGE_KEY = 'openai_api_key';
+export async function promptForConfig(): Promise<{
+  litAuthPrivateKey: string;
+  openAiApiKey: string;
+  toolPolicyRegistryConfig?: {
+    rpcUrl: string;
+    contractAddress: string;
+  };
+}> {
+  logger.warn('Configuration');
 
-export async function promptForOpenAIKey(): Promise<string> {
-  // Check if key exists in storage
-  const existingKey = storage.getItem(OPENAI_KEY_STORAGE_KEY);
-  if (existingKey) {
-    return existingKey;
-  }
-
-  // Prompt user for key
-  const { apiKey } = await inquirer.prompt([
+  const { litAuthPrivateKey, openAiApiKey } = await inquirer.prompt([
     {
       type: 'password',
-      name: 'apiKey',
-      message: 'Please enter your OpenAI API key:',
+      name: 'litAuthPrivateKey',
+      message: 'Enter your Lit Auth private key:',
       validate: (input: string) => {
-        if (!input.trim()) {
-          return 'API key is required';
-        }
-        if (!input.startsWith('sk-')) {
-          return 'Invalid API key format. Should start with "sk-"';
-        }
+        if (!input) return 'Private key is required';
+        return true;
+      },
+    },
+    {
+      type: 'password',
+      name: 'openAiApiKey',
+      message: 'Enter your OpenAI API key:',
+      validate: (input: string) => {
+        if (!input) return 'API key is required';
         return true;
       },
     },
   ]);
 
-  // Store the key
-  storage.setItem(OPENAI_KEY_STORAGE_KEY, apiKey);
-  return apiKey;
-}
-
-export async function promptForChainConfig(): Promise<ChainConfig> {
-  const chains = storage.getStoredChains();
-  const lastUsedChain = storage.getLastUsedChain();
-
-  const { chainChoice } = await inquirer.prompt([
+  // Ask if user wants to use custom tool policy registry config
+  const { useCustomConfig } = await inquirer.prompt([
     {
-      type: 'list',
-      name: 'chainChoice',
-      message: 'Select the chain to use:',
-      choices: [
-        ...(lastUsedChain ? [`Last Used (${lastUsedChain})`] : []),
-        ...Object.keys(chains),
-        new inquirer.Separator(),
-        'Add New Chain',
-      ],
-      default: lastUsedChain ? `Last Used (${lastUsedChain})` : undefined,
+      type: 'confirm',
+      name: 'useCustomConfig',
+      message:
+        'Would you like to use a custom PKP Tool Policy Registry configuration?',
+      default: false,
     },
   ]);
 
-  if (chainChoice === 'Add New Chain') {
-    const nameResponse = await inquirer.prompt<{ name: string }>([
-      {
-        type: 'input',
-        name: 'name',
-        message: 'Enter a name for this chain:',
-        validate: (input: string) =>
-          input.length > 0 || 'Chain name is required',
-      },
-    ]);
-
-    const rpcResponse = await inquirer.prompt<{ rpcUrl: string }>([
+  if (useCustomConfig) {
+    const { rpcUrl, contractAddress } = await inquirer.prompt([
       {
         type: 'input',
         name: 'rpcUrl',
-        message: 'Enter the RPC URL:',
-        validate: (input: string) => input.length > 0 || 'RPC URL is required',
+        message: 'Enter the RPC URL for the tool policy registry:',
+        default: 'https://yellowstone-rpc.litprotocol.com/',
+        validate: (input: string) => {
+          if (!input) return 'RPC URL is required';
+          if (!input.startsWith('http')) return 'Invalid RPC URL';
+          return true;
+        },
       },
-    ]);
-
-    const chainIdResponse = await inquirer.prompt<{ chainId: string }>([
       {
         type: 'input',
-        name: 'chainId',
-        message: 'Enter the chain ID:',
+        name: 'contractAddress',
+        message: 'Enter the contract address for the tool policy registry:',
+        default: '0xD78e1C1183A29794A092dDA7dB526A91FdE36020',
         validate: (input: string) => {
-          const num = Number(input);
-          return !isNaN(num) || 'Chain ID must be a number';
+          if (!input) return 'Contract address is required';
+          if (!input.startsWith('0x')) return 'Invalid contract address';
+          return true;
         },
       },
     ]);
 
-    const config: ChainConfig = {
-      rpcUrl: rpcResponse.rpcUrl,
-      chainId: Number(chainIdResponse.chainId),
+    return {
+      litAuthPrivateKey,
+      openAiApiKey,
+      toolPolicyRegistryConfig: {
+        rpcUrl,
+        contractAddress,
+      },
     };
-    storage.saveChainConfig(nameResponse.name, config);
-    storage.saveLastUsedChain(nameResponse.name);
-    return config;
   }
 
-  const chainName = chainChoice.startsWith('Last Used (')
-    ? chainChoice.slice(11, -1)
-    : chainChoice;
-
-  storage.saveLastUsedChain(chainName);
-  return chains[chainName];
+  return {
+    litAuthPrivateKey,
+    openAiApiKey,
+  };
 }

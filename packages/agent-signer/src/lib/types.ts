@@ -100,6 +100,23 @@ export interface RegisteredTools {
   versions: string[];
 }
 
+/**
+ * Tool policy registry configuration
+ */
+export interface ToolPolicyRegistryConfig {
+  /**
+   * RPC URL for the tool policy registry contract
+   * @default 'https://yellowstone-rpc.litprotocol.com/'
+   */
+  rpcUrl: string;
+
+  /**
+   * Contract address for the tool policy registry
+   * @default '0xD78e1C1183A29794A092dDA7dB526A91FdE36020'
+   */
+  contractAddress: string;
+}
+
 export interface AgentSigner {
   setToolPolicy(options: SetToolPolicyOptions): Promise<ContractTransaction>;
   removeToolPolicy(ipfsCid: string): Promise<ContractTransaction>;

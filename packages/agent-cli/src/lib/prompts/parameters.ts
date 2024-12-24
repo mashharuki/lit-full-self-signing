@@ -1,7 +1,8 @@
 import inquirer from 'inquirer';
 import type { ToolInfo } from '@lit-protocol/agent-tool-registry';
 import { logger } from '../utils/logger';
-import { promptForChainConfig } from './config';
+import { ethers } from 'ethers';
+import { promptForChainConfig } from './chain-config';
 
 interface ToolParameters {
   foundParams: Record<string, string>;
@@ -45,6 +46,24 @@ export async function collectMissingParams(
               if (!input.trim()) {
                 return `${paramName} is required`;
               }
+
+              // If parameter name contains 'amount', validate it's a valid number
+              if (paramName.toLowerCase().includes('amount')) {
+                try {
+                  ethers.utils.parseEther(input);
+                  return true;
+                } catch {
+                  return 'Invalid amount. Please enter a valid number.';
+                }
+              }
+
+              // If parameter name contains 'address', validate it's a valid Ethereum address
+              if (paramName.toLowerCase().includes('address')) {
+                if (!ethers.utils.isAddress(input)) {
+                  return 'Invalid Ethereum address';
+                }
+              }
+
               return true;
             },
           },

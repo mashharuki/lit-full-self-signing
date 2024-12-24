@@ -3,11 +3,19 @@ import { LitAgentError, LitAgentErrorType } from '../../errors';
 import { createAgentWallet } from './createAgentWallet';
 import { hasExistingAgentWallet } from './hasExistingAgentWallet';
 
+export interface ToolPolicyRegistryConfig {
+  rpcUrl: string;
+  contractAddress: string;
+}
+
 export async function initializeSigner(
-  litAuthPrivateKey: string
+  litAuthPrivateKey: string,
+  toolPolicyRegistryConfig: ToolPolicyRegistryConfig
 ): Promise<AgentSigner> {
   try {
-    const signer = await AgentSigner.create(litAuthPrivateKey);
+    const signer = await AgentSigner.create(litAuthPrivateKey, {
+      toolPolicyRegistryConfig,
+    });
 
     // Check for existing wallet and create if needed
     if (!hasExistingAgentWallet()) {
@@ -21,6 +29,13 @@ export async function initializeSigner(
         throw new LitAgentError(
           LitAgentErrorType.INSUFFICIENT_BALANCE,
           'Insufficient balance to create agent wallet',
+          { originalError: error }
+        );
+      }
+      if (error.message.includes('tool policy registry')) {
+        throw new LitAgentError(
+          LitAgentErrorType.INITIALIZATION_FAILED,
+          error.message,
           { originalError: error }
         );
       }

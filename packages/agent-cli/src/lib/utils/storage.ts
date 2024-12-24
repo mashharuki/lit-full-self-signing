@@ -17,15 +17,24 @@ export const DEFAULT_CHAINS: Record<string, ChainConfig> = {
   },
 };
 
+const STORAGE_PATH = join(process.cwd(), '.agent-cli-storage');
+const OPENAI_KEY_STORAGE_KEY = 'openai-key';
+const TOOL_POLICY_REGISTRY_ADDRESS_KEY = 'tool-policy-registry-address';
+const WALLET_STORAGE_KEY = 'auth-wallet';
+const CHAIN_CONFIG_STORAGE_KEY = 'chain_configs';
+const LAST_USED_CHAIN_KEY = 'last_used_chain';
+const TOOL_POLICY_REGISTRY_CONFIG = 'tool_policy_registry_config';
+
+export interface ToolPolicyRegistryConfig {
+  rpcUrl: string;
+  contractAddress: string;
+}
+
 class Storage {
-  private CHAIN_CONFIG_STORAGE_KEY = 'chain_configs';
-  private LAST_USED_CHAIN_KEY = 'last_used_chain';
   private localStorage: LocalStorage;
 
   constructor() {
-    this.localStorage = new LocalStorage(
-      join(process.cwd(), '.agent-cli-storage')
-    );
+    this.localStorage = new LocalStorage(STORAGE_PATH);
   }
 
   getItem(key: string): string | null {
@@ -63,19 +72,34 @@ class Storage {
     this.setItem(key, JSON.stringify(value));
   }
 
-  // Specific methods for wallet storage
+  getOpenAIKey(): string | null {
+    return this.localStorage.getItem(OPENAI_KEY_STORAGE_KEY);
+  }
+
+  setOpenAIKey(key: string): void {
+    this.localStorage.setItem(OPENAI_KEY_STORAGE_KEY, key);
+  }
+
+  getToolPolicyRegistryAddress(): string | null {
+    return this.localStorage.getItem(TOOL_POLICY_REGISTRY_ADDRESS_KEY);
+  }
+
+  setToolPolicyRegistryAddress(address: string): void {
+    this.localStorage.setItem(TOOL_POLICY_REGISTRY_ADDRESS_KEY, address);
+  }
+
   getWallet(): { address: string; privateKey: string } | null {
-    return this.getObject('wallet');
+    return this.getObject(WALLET_STORAGE_KEY);
   }
 
   setWallet(wallet: { address: string; privateKey: string }): void {
-    this.setObject('wallet', wallet);
+    this.setObject(WALLET_STORAGE_KEY, wallet);
   }
 
   getStoredChains(): Record<string, ChainConfig> {
-    const stored = this.getItem(this.CHAIN_CONFIG_STORAGE_KEY);
+    const stored = this.getItem(CHAIN_CONFIG_STORAGE_KEY);
     if (!stored) {
-      this.setItem(this.CHAIN_CONFIG_STORAGE_KEY, DEFAULT_CHAINS);
+      this.setItem(CHAIN_CONFIG_STORAGE_KEY, DEFAULT_CHAINS);
       return DEFAULT_CHAINS;
     }
     return JSON.parse(stored);
@@ -84,15 +108,25 @@ class Storage {
   saveChainConfig(name: string, config: ChainConfig): void {
     const chains = this.getStoredChains();
     chains[name] = config;
-    this.setItem(this.CHAIN_CONFIG_STORAGE_KEY, chains);
+    this.setItem(CHAIN_CONFIG_STORAGE_KEY, chains);
   }
 
   getLastUsedChain(): string | null {
-    return this.getItem(this.LAST_USED_CHAIN_KEY);
+    return this.getItem(LAST_USED_CHAIN_KEY);
   }
 
   saveLastUsedChain(name: string): void {
-    this.setItem(this.LAST_USED_CHAIN_KEY, name);
+    this.setItem(LAST_USED_CHAIN_KEY, name);
+  }
+
+  // Tool Policy Registry Config
+  getToolPolicyRegistryConfig(): ToolPolicyRegistryConfig | null {
+    const config = this.getItem(TOOL_POLICY_REGISTRY_CONFIG);
+    return config ? JSON.parse(config) : null;
+  }
+
+  setToolPolicyRegistryConfig(config: ToolPolicyRegistryConfig): void {
+    this.setItem(TOOL_POLICY_REGISTRY_CONFIG, JSON.stringify(config));
   }
 }
 

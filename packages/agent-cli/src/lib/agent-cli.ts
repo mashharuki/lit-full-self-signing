@@ -3,11 +3,9 @@ import {
   LitAgentError,
   LitAgentErrorType,
 } from '@lit-protocol/agent';
-
 import { logger } from './utils/logger';
 import { storage } from './utils/storage';
-import { getAuthPrivateKey } from './wallet';
-import { promptForOpenAIKey } from './prompts/config';
+import { promptForConfig } from './prompts/config';
 import { promptForUserIntent } from './prompts/intent';
 import { promptForToolPermission } from './prompts/permissions';
 import { collectMissingParams } from './prompts/parameters';
@@ -23,12 +21,22 @@ export class AgentCLI {
   }
 
   private async initializeLitAgent() {
-    const privateKey = await getAuthPrivateKey();
-    const openAiKey = await promptForOpenAIKey();
-
-    this.litAgent = new LitAgent(privateKey, openAiKey);
-
     try {
+      // Get configuration
+      const config = await promptForConfig();
+
+      this.litAgent = new LitAgent(
+        config.litAuthPrivateKey,
+        config.openAiApiKey,
+        undefined,
+        config.toolPolicyRegistryConfig
+      );
+
+      // Save the tool policy registry config if provided
+      if (config.toolPolicyRegistryConfig) {
+        storage.setToolPolicyRegistryConfig(config.toolPolicyRegistryConfig);
+      }
+
       await this.litAgent.init();
       logger.success('Successfully initialized Lit Agent');
     } catch (error) {
@@ -62,7 +70,11 @@ export class AgentCLI {
           }
         }
       }
-      logger.error(`Unexpected error: ${error}`);
+      logger.error(
+        `Unexpected error: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
       process.exit(1);
     }
   }
