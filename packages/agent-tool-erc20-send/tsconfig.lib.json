@@ -13,13 +13,13 @@
     "moduleResolution": "node",
     "module": "commonjs",
     "paths": {
-      "@lit-protocol/agent-toolkit": ["../agent-toolkit/src"]
+      "@lit-protocol/agent-tool-policy-base": ["../agent-tool-policy-base/src"]
     }
   },
   "include": ["src/**/*.ts"],
   "references": [
     {
-      "path": "../agent-toolkit/tsconfig.lib.json"
+      "path": "../agent-tool-policy-base/tsconfig.lib.json"
     }
   ],
   "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"]

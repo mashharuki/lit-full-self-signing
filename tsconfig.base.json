@@ -36,8 +36,9 @@
       "@lit-protocol/agent-tool-erc20-send": [
         "./packages/agent-tool-erc20-send/src"
       ],
-      "@lit-protocol/agent-toolkit": ["./packages/agent-toolkit/src"],
-      "@lit-protocol/agent-toolkit/*": ["./packages/agent-toolkit/src/*"]
+      "@lit-protocol/agent-tool-policy-base/*": [
+        "./packages/agent-tool-policy-base/src/*"
+      ]
     }
   }
 }

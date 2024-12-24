@@ -1,6 +1,6 @@
 /* eslint-disable */
 export default {
-  displayName: 'agent-toolkit',
+  displayName: 'agent-tool-policy-base',
   preset: '../../jest.preset.js',
   transform: {
     '^.+\\.[tj]s$': [
@@ -12,5 +12,5 @@ export default {
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
   testEnvironment: 'node',
-  coverageDirectory: '../../coverage/packages/agent-toolkit',
+  coverageDirectory: '../../coverage/packages/agent-tool-policy-base',
 };

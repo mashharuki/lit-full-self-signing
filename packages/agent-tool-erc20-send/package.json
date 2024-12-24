@@ -2,7 +2,7 @@
   "name": "@lit-protocol/agent-tool-erc20-send",
   "version": "0.0.1",
   "dependencies": {
-    "@lit-protocol/agent-toolkit": "workspace:*",
+    "@lit-protocol/agent-tool-policy-base": "workspace:*",
     "ethers": "catalog:",
     "zod": "^3.24.1"
   },

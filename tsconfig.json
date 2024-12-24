@@ -7,7 +7,7 @@
       "path": "./packages/agent-signer"
     },
     {
-      "path": "./packages/agent-toolkit"
+      "path": "./packages/agent-tool-policy-base"
     },
     {
       "path": "./packages/agent-tool-erc20-send"

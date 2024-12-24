@@ -12,7 +12,7 @@ The Lit AI Agent project consists of several packages that work together to prov
 - `agent-signer`: Handles authentication and signing of transactions
 - `agent-tool-registry`: Registry for available agent tools and capabilities
 - `agent-tool-erc20-send`: Example tool implementation for sending ERC20 tokens
-- `agent-toolkit`: Shared utilities and interfaces for building agent tools
+- `agent-tool-policy-base`: Shared utilities and interfaces for building agent tools
 
 ## Development
 
@@ -43,7 +43,7 @@ The project follows a modular architecture where:
 2. Tools are registered in the `agent-tool-registry` with their capabilities and policies
 3. The `agent-signer` handles secure transaction signing using Lit Protocol's PKPs
 4. Smart contracts in `agent-contracts` manage on-chain policies and permissions
-5. The `agent-toolkit` provides shared utilities for building new tools
+5. The `agent-tool-policy-base` provides shared utilities for building new tools
 
 ## Security
 

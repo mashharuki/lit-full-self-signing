@@ -1,9 +1,7 @@
 {
-  "name": "@lit-protocol/agent-toolkit",
+  "name": "@lit-protocol/agent-tool-policy-base",
   "version": "0.1.0",
   "dependencies": {
-    "ethers": "catalog:",
-    "openai": "^4.77.0",
     "zod": "^3.24.1"
   },
   "type": "commonjs",
@@ -22,7 +20,7 @@
     "!**/*.tsbuildinfo"
   ],
   "nx": {
-    "sourceRoot": "packages/agent-toolkit/src",
+    "sourceRoot": "packages/agent-tool-policy-base/src",
     "projectType": "library",
     "targets": {
       "build": {
@@ -31,15 +29,15 @@
           "{options.outputPath}"
         ],
         "options": {
-          "outputPath": "packages/agent-toolkit/dist",
-          "main": "packages/agent-toolkit/src/index.ts",
-          "tsConfig": "packages/agent-toolkit/tsconfig.lib.json",
+          "outputPath": "packages/agent-tool-policy-base/dist",
+          "main": "packages/agent-tool-policy-base/src/index.ts",
+          "tsConfig": "packages/agent-tool-policy-base/tsconfig.lib.json",
           "assets": [
-            "packages/agent-toolkit/*.md"
+            "packages/agent-tool-policy-base/*.md"
           ]
         }
       }
     },
-    "name": "agent-toolkit"
+    "name": "agent-tool-policy-base"
   }
 }

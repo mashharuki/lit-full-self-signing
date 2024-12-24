@@ -12,15 +12,15 @@
     "paths": {
       "@lit-protocol/agent-signer": ["../agent-signer/src"],
       "@lit-protocol/agent-tool-registry": ["../agent-tool-registry/src"],
-      "@lit-protocol/agent-toolkit": ["../agent-toolkit/src"],
       "@lit-protocol/agent-tool-erc20-send": ["../agent-tool-erc20-send/src"],
-      "@lit-protocol/agent": ["../agent/src"]
+      "@lit-protocol/agent": ["../agent/src"],
+      "@lit-protocol/agent-tool-policy-base": ["../agent-tool-policy-base/src"]
     }
   },
   "include": ["src/**/*.ts"],
   "references": [
     {
-      "path": "../agent-toolkit/tsconfig.lib.json"
+      "path": "../agent-tool-policy-base/tsconfig.lib.json"
     },
     {
       "path": "../agent-tool-erc20-send/tsconfig.lib.json"

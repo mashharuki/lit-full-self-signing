@@ -1,4 +1,4 @@
-# @lit-protocol/agent-toolkit
+# @lit-protocol/agent-tool-policy-base
 
 A collection of shared utilities and interfaces for building Lit AI Agent tools. This toolkit provides the foundation for creating secure and policy-controlled agent tools.
 
@@ -12,7 +12,7 @@ A collection of shared utilities and interfaces for building Lit AI Agent tools.
 ## Installation
 
 ```bash
-pnpm add @lit-protocol/agent-toolkit
+pnpm add @lit-protocol/agent-tool-policy-base
 ```
 
 ## Usage
@@ -24,7 +24,7 @@ import {
   BaseLitActionPolicy,
   BaseLitActionPolicySchema,
   registerPolicy
-} from '@lit-protocol/agent-toolkit';
+} from '@lit-protocol/agent-tool-policy-base';
 
 // 1. Define your policy interface
 interface MyToolPolicy extends BaseLitActionPolicy {

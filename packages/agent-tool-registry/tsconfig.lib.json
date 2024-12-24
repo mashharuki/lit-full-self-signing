@@ -13,7 +13,7 @@
   "include": ["src/**/*.ts"],
   "references": [
     {
-      "path": "../agent-toolkit/tsconfig.lib.json"
+      "path": "..agent-tool-policy-base/tsconfig.lib.json"
     },
     {
       "path": "../agent-tool-erc20-send/tsconfig.lib.json"
