@@ -85,10 +85,50 @@ export async function setToolPolicy(
     });
 
     // Add gas parameters to the transaction
+    const [baseFee, priorityFee] = await Promise.all([
+      provider.getBlock('latest').then((block) => block.baseFeePerGas),
+      provider.getGasPrice().then((gasPrice) => gasPrice.div(100).mul(5)), // 5% of current gas price
+    ]);
+
+    // Set maxFeePerGas to 2x current base fee + priority fee
+    const maxFeePerGas = baseFee
+      ? baseFee.mul(2).add(priorityFee)
+      : priorityFee;
+
     const finalTx = {
       ...tx,
-      gasLimit: gasEstimate.mul(120).div(100), // Add 20% buffer
+      type: 2, // EIP-1559 transaction
+      chainId: (await provider.getNetwork()).chainId,
+      nonce: await provider.getTransactionCount(pkpAddress),
+      maxFeePerGas: maxFeePerGas.toHexString(),
+      maxPriorityFeePerGas: priorityFee.toHexString(),
+      gasLimit: gasEstimate.mul(120).div(100).toHexString(), // Add 20% buffer
     };
+
+    // Log transaction costs
+    console.log('Transaction costs:');
+    console.log(
+      '  Gas limit:',
+      ethers.utils.formatUnits(gasEstimate.mul(120).div(100), 'wei'),
+      'gas'
+    );
+    console.log(
+      '  Max priority fee:',
+      ethers.utils.formatEther(priorityFee),
+      'ETH'
+    );
+    console.log(
+      '  Max fee per gas:',
+      ethers.utils.formatEther(maxFeePerGas),
+      'ETH'
+    );
+    console.log(
+      '  Max total cost:',
+      ethers.utils.formatEther(maxFeePerGas.mul(gasEstimate.mul(120).div(100))),
+      'ETH'
+    );
+
+    console.log('Final transaction:', finalTx);
 
     const signature = await signCallback(
       ethers.utils.keccak256(ethers.utils.serializeTransaction(finalTx))
@@ -138,9 +178,24 @@ export async function removeToolPolicy(
     });
 
     // Add gas parameters to the transaction
+    const [baseFee, priorityFee] = await Promise.all([
+      provider.getBlock('latest').then((block) => block.baseFeePerGas),
+      provider.getGasPrice().then((gasPrice) => gasPrice.div(100).mul(5)), // 5% of current gas price
+    ]);
+
+    // Set maxFeePerGas to 2x current base fee + priority fee
+    const maxFeePerGas = baseFee
+      ? baseFee.mul(2).add(priorityFee)
+      : priorityFee;
+
     const finalTx = {
       ...tx,
-      gasLimit: gasEstimate.mul(120).div(100), // Add 20% buffer
+      type: 2, // EIP-1559 transaction
+      chainId: (await provider.getNetwork()).chainId,
+      nonce: await provider.getTransactionCount(pkpAddress),
+      maxFeePerGas: maxFeePerGas.toHexString(),
+      maxPriorityFeePerGas: priorityFee.toHexString(),
+      gasLimit: gasEstimate.mul(120).div(100).toHexString(), // Add 20% buffer
     };
 
     const signature = await signCallback(
