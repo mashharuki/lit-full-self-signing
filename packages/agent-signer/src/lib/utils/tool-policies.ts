@@ -103,7 +103,11 @@ export async function setToolPolicy(
     );
 
     // Convert the signature to the format ethers.js expects
-    const sig = ethers.utils.splitSignature(signature.signature);
+    const sig = {
+      r: '0x' + signature.r,
+      s: '0x' + signature.s,
+      v: signature.recid + 27, // Convert recid to v
+    };
     const signedTx = ethers.utils.serializeTransaction(finalTx, sig);
 
     // Send the signed transaction
@@ -172,7 +176,11 @@ export async function removeToolPolicy(
     );
 
     // Convert the signature to the format ethers.js expects
-    const sig = ethers.utils.splitSignature(signature.signature);
+    const sig = {
+      r: '0x' + signature.r,
+      s: '0x' + signature.s,
+      v: signature.recid + 27, // Convert recid to v
+    };
     const signedTx = ethers.utils.serializeTransaction(finalTx, sig);
 
     // Send the signed transaction
