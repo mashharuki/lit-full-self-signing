@@ -119,7 +119,7 @@ export class LitAgent {
       let decodedPolicy = null;
       try {
         const currentPolicy = await this.signer.getToolPolicy(ipfsCid);
-        if (currentPolicy.policy.length > 0) {
+        if (currentPolicy.policy !== '0x' && currentPolicy.version !== '') {
           const registryTool = getToolFromRegistry(tool.name);
           decodedPolicy = registryTool.Policy.decode(currentPolicy.policy);
         }

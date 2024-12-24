@@ -16,6 +16,8 @@ export async function executeAction(
       );
     }
 
+    console.log(`Executing tool (${ipfsCid}) with params:`, params);
+
     const execParams: ExecuteJsParams = {
       ipfsId: ipfsCid,
       jsParams: {

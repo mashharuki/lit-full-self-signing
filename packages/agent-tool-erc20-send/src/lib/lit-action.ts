@@ -15,6 +15,7 @@ declare global {
       serializeTransaction: any;
       joinSignature: any;
       isHexString: any;
+      getAddress: any;
     };
     BigNumber: any;
     Contract: any;
@@ -37,35 +38,61 @@ declare global {
 export default async () => {
   try {
     async function getTokenInfo(provider: any) {
+      console.log('Getting token info for:', params.tokenIn);
+
+      // Validate token address
+      try {
+        ethers.utils.getAddress(params.tokenIn);
+      } catch (error) {
+        throw new Error(`Invalid token address: ${params.tokenIn}`);
+      }
+
+      // Check if contract exists
+      const code = await provider.getCode(params.tokenIn);
+      if (code === '0x') {
+        throw new Error(`No contract found at address: ${params.tokenIn}`);
+      }
+
       const tokenInterface = new ethers.utils.Interface([
         'function decimals() view returns (uint8)',
         'function balanceOf(address account) view returns (uint256)',
         'function transfer(address to, uint256 amount) external returns (bool)',
       ]);
 
+      console.log('Creating token contract instance...');
       const tokenContract = new ethers.Contract(
         params.tokenIn,
         tokenInterface,
         provider
       );
 
-      const [decimals, balance] = await Promise.all([
-        tokenContract.decimals(),
-        tokenContract.balanceOf(pkp.ethAddress),
-      ]);
+      console.log('Fetching token decimals and balance...');
+      try {
+        const decimals = await tokenContract.decimals();
+        console.log('Token decimals:', decimals);
 
-      const amount = ethers.utils.parseUnits(params.amountIn, decimals);
+        const balance = await tokenContract.balanceOf(pkp.ethAddress);
+        console.log('Token balance:', balance.toString());
 
-      if (amount.gt(balance)) {
+        const amount = ethers.utils.parseUnits(params.amountIn, decimals);
+        console.log('Amount to send:', amount.toString());
+
+        if (amount.gt(balance)) {
+          throw new Error(
+            `Insufficient balance. PKP balance: ${ethers.utils.formatUnits(
+              balance,
+              decimals
+            )}. Required: ${ethers.utils.formatUnits(amount, decimals)}`
+          );
+        }
+
+        return { decimals, balance, amount };
+      } catch (error) {
+        console.error('Error getting token info:', error);
         throw new Error(
-          `Insufficient balance. PKP balance: ${ethers.utils.formatUnits(
-            balance,
-            decimals
-          )}. Required: ${ethers.utils.formatUnits(amount, decimals)}`
+          `Failed to interact with token contract at ${params.tokenIn}. Make sure this is a valid ERC20 token contract.`
         );
       }
-
-      return { decimals, balance, amount };
     }
 
     async function getGasData() {

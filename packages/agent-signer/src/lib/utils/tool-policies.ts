@@ -33,11 +33,35 @@ export async function setToolPolicy(
   const { ipfsCid, policy, version } = options;
 
   try {
-    // ABI encode the policy data
-    const encodedPolicy = ethers.utils.defaultAbiCoder.encode(
-      [typeof policy === 'object' ? 'tuple' : typeof policy],
-      [policy]
+    // Log the policy data for debugging
+    console.log('Policy data before encoding:', policy);
+
+    // Ensure maxAmount is a valid BigNumber
+    const maxAmount = ethers.BigNumber.from(policy.maxAmount);
+
+    // Validate addresses in arrays
+    const allowedTokens = (policy.allowedTokens || []).map((addr: string) =>
+      ethers.utils.getAddress(addr)
     );
+    const allowedRecipients = (policy.allowedRecipients || []).map(
+      (addr: string) => ethers.utils.getAddress(addr)
+    );
+
+    // ABI encode the policy data with the correct format
+    const encodedPolicy = ethers.utils.defaultAbiCoder.encode(
+      [
+        'tuple(uint256 maxAmount, address[] allowedTokens, address[] allowedRecipients)',
+      ],
+      [
+        {
+          maxAmount,
+          allowedTokens,
+          allowedRecipients,
+        },
+      ]
+    );
+
+    console.log('Encoded policy:', encodedPolicy);
 
     // Encode the function call
     const data = contract.interface.encodeFunctionData('setActionPolicy', [
@@ -45,6 +69,8 @@ export async function setToolPolicy(
       encodedPolicy,
       version,
     ]);
+
+    console.log('Transaction data:', data);
 
     // Sign and send the transaction
     const tx = {
