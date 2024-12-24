@@ -71,7 +71,7 @@ deploy-dev-erc20: ## Deploy the DevERC20 contract
 		--broadcast \
 		--private-key $(FORGE_DEPLOYER_PRIVATE_KEY)
 
-mint-dev-erc20: ## Mint DevERC20 tokens for a recipient
+mint-dev-erc20: ## Mint DevERC20 tokens for a recipient. Usage: make mint-dev-erc20 ADDR=0x... AMT=100 (in ether)
 	@if [ -z "$(CHAIN_TO_DEPLOY_TO_RPC_URL)" ]; then \
 		echo "Error: CHAIN_TO_DEPLOY_TO_RPC_URL is not set in .env"; \
 		exit 1; \
@@ -80,16 +80,20 @@ mint-dev-erc20: ## Mint DevERC20 tokens for a recipient
 		echo "Error: DEVERC20_CONTRACT_ADDRESS is not set in .env"; \
 		exit 1; \
 	fi
-	@if [ -z "$(DEVERC20_MINT_RECIPIENT)" ]; then \
-		echo "Error: DEVERC20_MINT_RECIPIENT is not set in .env"; \
+	@if [ -z "$(ADDR)" ]; then \
+		echo "Error: ADDR parameter is required. Usage: make mint-dev-erc20 ADDR=0x... AMT=100 (in ether)"; \
 		exit 1; \
 	fi
-	@if [ -z "$(DEVERC20_MINT_AMOUNT)" ]; then \
-		echo "Error: DEVERC20_MINT_AMOUNT is not set in .env"; \
+	@if [ -z "$(AMT)" ]; then \
+		echo "Error: AMT parameter is required. Usage: make mint-dev-erc20 ADDR=0x... AMT=100 (in ether)"; \
 		exit 1; \
 	fi
-	@echo "Minting $(DEVERC20_MINT_AMOUNT) tokens for $(DEVERC20_MINT_RECIPIENT)..."
-	@forge script -vvv script/MintDevERC20.s.sol:MintDevERC20Script \
+	@echo "Converting $(AMT) ETH to wei..."
+	$(eval AMT_IN_WEI := $(shell cast --to-wei $(AMT) eth))
+	@echo "Minting $(AMT) tokens ($(AMT_IN_WEI) wei) for $(ADDR)..."
+	@forge clean
+	@forge build
+	@DEVERC20_MINT_RECIPIENT=$(ADDR) DEVERC20_MINT_AMOUNT=$(AMT_IN_WEI) forge script -vvv script/MintDevERC20.s.sol:MintDevERC20Script \
 		--rpc-url $(CHAIN_TO_DEPLOY_TO_RPC_URL) \
 		--broadcast \
 		--private-key $(FORGE_DEPLOYER_PRIVATE_KEY)
