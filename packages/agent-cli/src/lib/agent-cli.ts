@@ -5,7 +5,11 @@ import {
 } from '@lit-protocol/agent';
 import { logger } from './utils/logger';
 import { storage } from './utils/storage';
-import { promptForConfig } from './prompts/config';
+import {
+  promptForOpenAIKey,
+  promptForAuthPrivateKey,
+  promptForToolPolicyRegistryConfig,
+} from './prompts/config';
 import { promptForUserIntent } from './prompts/intent';
 import { promptForToolPermission } from './prompts/permissions';
 import { collectMissingParams } from './prompts/parameters';
@@ -23,19 +27,23 @@ export class AgentCLI {
   private async initializeLitAgent() {
     try {
       // Get configuration
-      const config = await promptForConfig();
+      const authPrivateKey = await promptForAuthPrivateKey();
+      const openAiKey = await promptForOpenAIKey();
+      const toolPolicyRegistryConfig =
+        await promptForToolPolicyRegistryConfig();
 
+      // Initialize the agent
       this.litAgent = new LitAgent(
-        config.litAuthPrivateKey,
-        config.openAiApiKey,
-        undefined,
-        config.toolPolicyRegistryConfig
+        authPrivateKey,
+        openAiKey,
+        'gpt-4',
+        toolPolicyRegistryConfig
+          ? {
+              rpcUrl: toolPolicyRegistryConfig.rpcUrl,
+              contractAddress: toolPolicyRegistryConfig.contractAddress,
+            }
+          : undefined
       );
-
-      // Save the tool policy registry config if provided
-      if (config.toolPolicyRegistryConfig) {
-        storage.setToolPolicyRegistryConfig(config.toolPolicyRegistryConfig);
-      }
 
       await this.litAgent.init();
       logger.success('Successfully initialized Lit Agent');

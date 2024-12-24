@@ -1,49 +1,184 @@
 import inquirer from 'inquirer';
 import { logger } from '../utils/logger';
+import { storage } from '../utils/storage';
+import { ethers } from 'ethers';
+import { LIT_RPC } from '@lit-protocol/constants';
 
-export async function promptForConfig(): Promise<{
-  litAuthPrivateKey: string;
-  openAiApiKey: string;
-  toolPolicyRegistryConfig?: {
-    rpcUrl: string;
-    contractAddress: string;
-  };
-}> {
-  logger.warn('Configuration');
+async function checkAndPromptForBalance(wallet: ethers.Wallet): Promise<void> {
+  const provider = new ethers.providers.JsonRpcProvider(
+    LIT_RPC.CHRONICLE_YELLOWSTONE
+  );
+  let balance = await provider.getBalance(wallet.address);
 
-  const { litAuthPrivateKey, openAiApiKey } = await inquirer.prompt([
-    {
-      type: 'password',
-      name: 'litAuthPrivateKey',
-      message: 'Enter your Lit Auth private key:',
-      validate: (input: string) => {
-        if (!input) return 'Private key is required';
-        return true;
+  while (balance.lt(ethers.utils.parseEther('0.01'))) {
+    logger.error(
+      'Insufficient balance: Your wallet needs at least 0.01 Lit test tokens'
+    );
+    logger.warn(`Current balance: ${ethers.utils.formatEther(balance)} ETH`);
+    logger.log(
+      `Please fund your wallet (${wallet.address}) with Lit test tokens`
+    );
+    logger.log(
+      'Get test tokens from: https://chronicle-yellowstone-faucet.getlit.dev/'
+    );
+
+    const { confirmed } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'confirmed',
+        message: 'Have you funded your wallet with test tokens?',
+        default: false,
       },
-    },
+    ]);
+
+    if (confirmed) {
+      balance = await provider.getBalance(wallet.address);
+    }
+  }
+}
+
+export async function promptForOpenAIKey(): Promise<string> {
+  const existingKey = storage.getOpenAIKey();
+  if (existingKey) {
+    return existingKey;
+  }
+
+  const { openAiKey } = await inquirer.prompt([
     {
       type: 'password',
-      name: 'openAiApiKey',
-      message: 'Enter your OpenAI API key:',
-      validate: (input: string) => {
-        if (!input) return 'API key is required';
+      name: 'openAiKey',
+      message: 'Please enter your OpenAI API key:',
+      validate: (input) => {
+        if (!input) {
+          return 'OpenAI API key is required';
+        }
         return true;
       },
     },
   ]);
 
-  // Ask if user wants to use custom tool policy registry config
-  const { useCustomConfig } = await inquirer.prompt([
+  storage.setOpenAIKey(openAiKey);
+  return openAiKey;
+}
+
+export async function promptForAuthPrivateKey(): Promise<string> {
+  const existingWallet = storage.getWallet();
+  if (existingWallet) {
+    const wallet = new ethers.Wallet(existingWallet.privateKey);
+    await checkAndPromptForBalance(wallet);
+    return existingWallet.privateKey;
+  }
+
+  const { choice } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'choice',
+      message:
+        'Would you like to generate a new auth key or provide an existing one?',
+      choices: ['Generate New', 'Provide Existing'],
+    },
+  ]);
+
+  if (choice === 'Generate New') {
+    const wallet = ethers.Wallet.createRandom();
+    logger.info(
+      `Generated new Lit auth wallet with address: ${wallet.address}`
+    );
+    logger.log('Before continuing:');
+    logger.log('1. Back up your private key in a secure location');
+    logger.log(`2. Fund your wallet (${wallet.address}) with Lit test tokens`);
+    logger.log(
+      '   Get test tokens from: https://chronicle-yellowstone-faucet.getlit.dev/'
+    );
+
+    let confirmed = false;
+    while (!confirmed) {
+      const response = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'confirmed',
+          message:
+            'Have you backed up your private key and funded your wallet with test tokens?',
+          default: false,
+        },
+      ]);
+
+      if (!response.confirmed) {
+        logger.warn(
+          'Please back up your private key and fund your wallet before continuing'
+        );
+        logger.log(`Wallet Address: ${wallet.address}`);
+        logger.log(
+          'Faucet URL: https://chronicle-yellowstone-faucet.getlit.dev/'
+        );
+      } else {
+        confirmed = true;
+      }
+    }
+
+    const walletInfo = {
+      address: wallet.address,
+      privateKey: wallet.privateKey,
+    };
+    storage.setWallet(walletInfo);
+    await checkAndPromptForBalance(wallet);
+    return wallet.privateKey;
+  } else {
+    const { privateKey } = await inquirer.prompt([
+      {
+        type: 'password',
+        name: 'privateKey',
+        message: 'Please enter your auth private key:',
+        validate: (input) => {
+          if (!input) {
+            return 'Private key is required';
+          }
+          try {
+            // Try to create a wallet with the private key
+            new ethers.Wallet(input);
+            return true;
+          } catch {
+            return 'Invalid private key format';
+          }
+        },
+      },
+    ]);
+
+    const wallet = new ethers.Wallet(privateKey);
+    const walletInfo = {
+      address: wallet.address,
+      privateKey: wallet.privateKey,
+    };
+    storage.setWallet(walletInfo);
+    logger.info(`Using wallet with address: ${wallet.address}`);
+    await checkAndPromptForBalance(wallet);
+    return wallet.privateKey;
+  }
+}
+
+export async function promptForToolPolicyRegistryConfig(): Promise<
+  | {
+      rpcUrl: string;
+      contractAddress: string;
+    }
+  | undefined
+> {
+  const existingConfig = storage.getToolPolicyRegistryConfig();
+  if (existingConfig) {
+    return existingConfig;
+  }
+
+  const { useDefaultConfig } = await inquirer.prompt([
     {
       type: 'confirm',
-      name: 'useCustomConfig',
+      name: 'useDefaultConfig',
       message:
-        'Would you like to use a custom PKP Tool Policy Registry configuration?',
-      default: false,
+        'Would you like to use the default Lit PKP Tool Policy Registry? (recommended)',
+      default: true,
     },
   ]);
 
-  if (useCustomConfig) {
+  if (!useDefaultConfig) {
     const { rpcUrl, contractAddress } = await inquirer.prompt([
       {
         type: 'input',
@@ -69,18 +204,10 @@ export async function promptForConfig(): Promise<{
       },
     ]);
 
-    return {
-      litAuthPrivateKey,
-      openAiApiKey,
-      toolPolicyRegistryConfig: {
-        rpcUrl,
-        contractAddress,
-      },
-    };
+    const config = { rpcUrl, contractAddress };
+    storage.setToolPolicyRegistryConfig(config);
+    return config;
   }
 
-  return {
-    litAuthPrivateKey,
-    openAiApiKey,
-  };
+  return undefined;
 }
