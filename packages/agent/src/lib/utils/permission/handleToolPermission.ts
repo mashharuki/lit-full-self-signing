@@ -38,13 +38,23 @@ export async function handleToolPermission(
           }
           if (policyValues) {
             try {
+              console.log(
+                `Setting tool (${tool.ipfsCid}) policy:`,
+                policyValues
+              );
+
               const tx = await signer.setToolPolicy({
                 ipfsCid: tool.ipfsCid,
                 policy: policyValues,
-                version: '1.0.0',
+                version: policyValues.version ?? '1.0.0',
               });
               return { txHash: tx.hash };
             } catch (error) {
+              // Log the error with proper serialization
+              if (error instanceof LitAgentError) {
+                console.error('Policy registration error:', error.toJSON());
+              }
+
               // Throw error to be caught by CLI for retry handling
               throw new LitAgentError(
                 LitAgentErrorType.TOOL_POLICY_REGISTRATION_FAILED,

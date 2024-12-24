@@ -1,22 +1,2 @@
-export enum LitAgentErrorType {
-  INITIALIZATION_FAILED = 'INITIALIZATION_FAILED',
-  INSUFFICIENT_BALANCE = 'INSUFFICIENT_BALANCE',
-  WALLET_CREATION_FAILED = 'WALLET_CREATION_FAILED',
-  TOOL_PERMISSION_FAILED = 'TOOL_PERMISSION_FAILED',
-  TOOL_EXECUTION_FAILED = 'TOOL_EXECUTION_FAILED',
-  INVALID_PARAMETERS = 'INVALID_PARAMETERS',
-  TOOL_VALIDATION_FAILED = 'TOOL_VALIDATION_FAILED',
-  TOOL_NOT_FOUND = 'TOOL_NOT_FOUND',
-  TOOL_POLICY_REGISTRATION_FAILED = 'TOOL_POLICY_REGISTRATION_FAILED',
-}
-
-export class LitAgentError extends Error {
-  constructor(
-    public type: LitAgentErrorType,
-    message: string,
-    public details?: any
-  ) {
-    super(message);
-    this.name = 'LitAgentError';
-  }
-}
+// Re-export error types from agent-signer
+export { LitAgentError, LitAgentErrorType } from '@lit-protocol/agent-signer';
