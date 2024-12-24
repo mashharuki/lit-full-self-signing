@@ -28,39 +28,45 @@ export async function handleToolPermission(
 
       // After permitting the tool, prompt for policy configuration
       if (setNewToolPolicyCallback) {
-        const { usePolicy, policyValues } = await setNewToolPolicyCallback(
-          tool,
-          null
-        );
-        if (usePolicy && policyValues) {
-          try {
-            await signer.setToolPolicy({
-              ipfsCid: tool.ipfsCid,
-              policy: policyValues,
-              // @TODO get version from tool
-              version: '1.0.0',
-            });
-          } catch (error) {
-            let errorMessage = 'Failed to set tool policy';
-            if (error instanceof Error) {
-              errorMessage = error.message;
-              const match = error.message.match(/\{.*\}/);
-              if (match) {
-                try {
-                  const parsed = JSON.parse(match[0]);
-                  if (parsed.error?.message) {
-                    errorMessage = parsed.error.message;
+        while (true) {
+          const { usePolicy, policyValues } = await setNewToolPolicyCallback(
+            tool,
+            null
+          );
+          if (!usePolicy) {
+            break;
+          }
+          if (policyValues) {
+            try {
+              await signer.setToolPolicy({
+                ipfsCid: tool.ipfsCid,
+                policy: policyValues,
+                version: '1.0.0',
+              });
+              break;
+            } catch (error) {
+              let errorMessage = 'Failed to set tool policy';
+              if (error instanceof Error) {
+                errorMessage = error.message;
+                const match = error.message.match(/\{.*\}/);
+                if (match) {
+                  try {
+                    const parsed = JSON.parse(match[0]);
+                    if (parsed.error?.message) {
+                      errorMessage = parsed.error.message;
+                    }
+                  } catch {
+                    // Ignore JSON parse errors as we'll use the original error message
                   }
-                } catch {
-                  // Ignore JSON parse errors as we'll use the original error message
                 }
               }
+              // Throw error to be caught by CLI for retry handling
+              throw new LitAgentError(
+                LitAgentErrorType.TOOL_POLICY_FAILED,
+                errorMessage,
+                { tool, policy: policyValues, originalError: error }
+              );
             }
-            throw new LitAgentError(
-              LitAgentErrorType.TOOL_POLICY_FAILED,
-              errorMessage,
-              { tool, policy: policyValues, originalError: error }
-            );
           }
         }
       }

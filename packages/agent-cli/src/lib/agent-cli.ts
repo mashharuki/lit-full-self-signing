@@ -3,6 +3,7 @@ import {
   LitAgentError,
   LitAgentErrorType,
 } from '@lit-protocol/agent';
+import type { ToolInfo } from '@lit-protocol/agent-tool-registry';
 import { logger } from './utils/logger';
 import { storage } from './utils/storage';
 import {
@@ -130,7 +131,10 @@ export class AgentCLI {
               return allParams;
             },
             setNewToolPolicyCallback: async (tool, currentPolicy) => {
-              while (true) {
+              const handlePolicySetup = async (
+                tool: ToolInfo,
+                currentPolicy: any | null
+              ): Promise<{ usePolicy: boolean; policyValues?: any }> => {
                 const { usePolicy, policyValues } = await promptForToolPolicy(
                   tool,
                   currentPolicy
@@ -148,55 +152,12 @@ export class AgentCLI {
                   if (proceedWithoutPolicy) {
                     return { usePolicy: false };
                   }
-                  // If they don't want to proceed without a policy, loop and try again
-                  continue;
+                  // If they don't want to proceed without a policy, try again
+                  return handlePolicySetup(tool, currentPolicy);
                 }
-
-                try {
-                  return { usePolicy: true, policyValues };
-                } catch (error) {
-                  if (
-                    error instanceof LitAgentError &&
-                    error.type === LitAgentErrorType.TOOL_POLICY_FAILED
-                  ) {
-                    logger.error(`Failed to set tool policy: ${error.message}`);
-                    if (error.details?.originalError) {
-                      logger.error(
-                        `Reason: ${error.details.originalError.message}`
-                      );
-                    }
-                    const { retry } = await inquirer.prompt([
-                      {
-                        type: 'confirm',
-                        name: 'retry',
-                        message:
-                          'Would you like to try setting the policy again?',
-                        default: true,
-                      },
-                    ]);
-                    if (!retry) {
-                      const { proceedWithoutPolicy } = await inquirer.prompt([
-                        {
-                          type: 'confirm',
-                          name: 'proceedWithoutPolicy',
-                          message:
-                            'Would you like to proceed without a policy? This means there will be no restrictions on tool usage.',
-                          default: false,
-                        },
-                      ]);
-                      if (proceedWithoutPolicy) {
-                        return { usePolicy: false };
-                      }
-                      // If they don't want to proceed without a policy, loop and try again
-                      continue;
-                    }
-                    // If they want to retry, loop and try again
-                    continue;
-                  }
-                  // For other errors, rethrow
-                  throw error;
-                }
-              }
+                return { usePolicy: true, policyValues };
+              };
+              return handlePolicySetup(tool, currentPolicy);
             },
             failedPolicyCallback: async (tool, params, policy, error) => {
               logger.error(`Policy validation failed: ${error.message}`);
@@ -251,6 +212,136 @@ export class AgentCLI {
             case LitAgentErrorType.TOOL_VALIDATION_FAILED:
               logger.error(`Policy validation failed: ${error.message}`);
               break;
+            case LitAgentErrorType.TOOL_POLICY_FAILED: {
+              logger.error(`Failed to set tool policy: ${error.message}`);
+              if (error.details?.originalError) {
+                logger.error(`Reason: ${error.details.originalError.message}`);
+              }
+              const { action } = await inquirer.prompt([
+                {
+                  type: 'list',
+                  name: 'action',
+                  message:
+                    'The policy registration transaction failed. What would you like to do?',
+                  choices: [
+                    'Try registering the policy again',
+                    'Proceed without registering a policy',
+                    'Cancel operation',
+                  ],
+                  default: 'Try registering the policy again',
+                },
+              ]);
+
+              if (action === 'Try registering the policy again') {
+                // Retry the entire tool execution with the same parameters
+                try {
+                  const retryResult = await this.litAgent.executeTool(
+                    result.matchedTool.ipfsCid,
+                    result.params.foundParams,
+                    {
+                      permissionCallback: async () => true, // Already permitted
+                      parameterCallback: async (tool, missingParams) => {
+                        const allParams = await collectMissingParams(tool, {
+                          foundParams: result.params.foundParams,
+                          missingParams,
+                        });
+                        return allParams;
+                      },
+                      setNewToolPolicyCallback: async (tool, currentPolicy) => {
+                        // Use the same policy values that failed
+                        return {
+                          usePolicy: true,
+                          policyValues: error.details?.policy,
+                        };
+                      },
+                      failedPolicyCallback: async (
+                        tool,
+                        params,
+                        policy,
+                        error
+                      ) => {
+                        logger.error(
+                          `Policy validation failed: ${error.message}`
+                        );
+                        return null;
+                      },
+                    }
+                  );
+                  if (!retryResult.success) {
+                    if (retryResult.reason) {
+                      logger.error(
+                        `Tool execution failed: ${retryResult.reason}`
+                      );
+                    }
+                  }
+                } catch (e) {
+                  // If retry fails, continue to main loop to let user try again
+                  const retryError =
+                    e instanceof Error ? e : new Error(String(e));
+                  logger.error(`Retry failed: ${retryError.message}`);
+                }
+                continue;
+              } else if (action === 'Proceed without registering a policy') {
+                const { confirmed } = await inquirer.prompt([
+                  {
+                    type: 'confirm',
+                    name: 'confirmed',
+                    message:
+                      'Are you sure? This means there will be no restrictions on tool usage.',
+                    default: false,
+                  },
+                ]);
+                if (!confirmed) {
+                  continue;
+                }
+                // Try executing without a policy
+                try {
+                  const retryResult = await this.litAgent.executeTool(
+                    result.matchedTool.ipfsCid,
+                    result.params.foundParams,
+                    {
+                      permissionCallback: async () => true, // Already permitted
+                      parameterCallback: async (tool, missingParams) => {
+                        const allParams = await collectMissingParams(tool, {
+                          foundParams: result.params.foundParams,
+                          missingParams,
+                        });
+                        return allParams;
+                      },
+                      setNewToolPolicyCallback: async () => ({
+                        usePolicy: false,
+                      }),
+                      failedPolicyCallback: async (
+                        tool,
+                        params,
+                        policy,
+                        error
+                      ) => {
+                        logger.error(
+                          `Policy validation failed: ${error.message}`
+                        );
+                        return null;
+                      },
+                    }
+                  );
+                  if (!retryResult.success) {
+                    if (retryResult.reason) {
+                      logger.error(
+                        `Tool execution failed: ${retryResult.reason}`
+                      );
+                    }
+                  }
+                } catch (e) {
+                  const retryError =
+                    e instanceof Error ? e : new Error(String(e));
+                  logger.error(`Execution failed: ${retryError.message}`);
+                }
+              } else {
+                // For 'Cancel operation'
+                logger.info('Operation cancelled by user');
+              }
+              continue;
+            }
             default:
               logger.error(`Operation failed: ${error.message}`);
           }
