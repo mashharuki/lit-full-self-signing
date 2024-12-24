@@ -7,7 +7,7 @@ import "../src/DevERC20.sol";
 contract MintDevERC20Script is Script {
     function run() external {
         // Get environment variables
-        uint256 deployerPrivateKey = vm.envUint("FORGE_DEPLOYER_PRIVATE_KEY");
+        uint256 deployerPrivateKey = vm.envUint("DEVERC20_DEPLOYER_PRIVATE_KEY");
         address recipient = vm.envAddress("DEVERC20_MINT_RECIPIENT");
         uint256 amount = vm.envUint("DEVERC20_MINT_AMOUNT");
         address tokenAddress = vm.envAddress("DEVERC20_CONTRACT_ADDRESS");

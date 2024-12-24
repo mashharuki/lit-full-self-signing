@@ -7,7 +7,7 @@ import "../src/PKPToolPolicyRegistry.sol";
 contract DeployPKPToolPolicyRegistry is Script {
     function run() external {
         // Get private key from environment variable
-        uint256 deployerPrivateKey = vm.envUint("FORGE_DEPLOYER_PRIVATE_KEY");
+        uint256 deployerPrivateKey = vm.envUint("PKP_TOOL_POLICY_REGISTRY_DEPLOYER_PRIVATE_KEY");
         
         // Start broadcasting transactions
         vm.startBroadcast(deployerPrivateKey);
