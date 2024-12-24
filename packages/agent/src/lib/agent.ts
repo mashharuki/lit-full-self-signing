@@ -135,7 +135,6 @@ export class LitAgent {
             currentPolicy.version
           );
         }
-        console.log('Decoded policy:', decodedPolicy);
       } catch (error) {
         // If policy registry is not initialized or there's no policy, continue without it
         if (

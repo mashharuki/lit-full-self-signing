@@ -19,7 +19,7 @@ export async function promptForToolPermission(
       type: 'confirm',
       name: 'shouldPermit',
       message: 'Would you like to permit this tool for your agent wallet?',
-      default: false,
+      default: true,
     },
   ]);
 

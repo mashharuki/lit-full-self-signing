@@ -108,6 +108,20 @@ export async function setToolPolicy(
       s: '0x' + signature.s,
       v: signature.recid + 27, // Convert recid to v
     };
+
+    // Recover the address from the signature
+    const recoveredAddress = ethers.utils.recoverAddress(
+      ethers.utils.keccak256(ethers.utils.serializeTransaction(finalTx)),
+      sig
+    );
+
+    // Verify the recovered address matches the PKP address
+    if (recoveredAddress.toLowerCase() !== pkpAddress.toLowerCase()) {
+      throw new Error(
+        `Signature verification failed. Expected signer: ${pkpAddress}, got: ${recoveredAddress}`
+      );
+    }
+
     const signedTx = ethers.utils.serializeTransaction(finalTx, sig);
 
     // Send the signed transaction
@@ -181,6 +195,20 @@ export async function removeToolPolicy(
       s: '0x' + signature.s,
       v: signature.recid + 27, // Convert recid to v
     };
+
+    // Recover the address from the signature
+    const recoveredAddress = ethers.utils.recoverAddress(
+      ethers.utils.keccak256(ethers.utils.serializeTransaction(finalTx)),
+      sig
+    );
+
+    // Verify the recovered address matches the PKP address
+    if (recoveredAddress.toLowerCase() !== pkpAddress.toLowerCase()) {
+      throw new Error(
+        `Signature verification failed. Expected signer: ${pkpAddress}, got: ${recoveredAddress}`
+      );
+    }
+
     const signedTx = ethers.utils.serializeTransaction(finalTx, sig);
 
     // Send the signed transaction

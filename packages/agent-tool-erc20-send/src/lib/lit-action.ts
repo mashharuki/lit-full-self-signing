@@ -39,7 +39,7 @@ declare global {
 
 export default async () => {
   // Don't remove me yet, still debugging
-  console.log('REMOVE ME 11');
+  console.log('REMOVE ME 14');
 
   try {
     async function validatePolicy(amount: any) {
@@ -63,7 +63,7 @@ export default async () => {
       );
 
       // Get policy for this tool
-      const TOOL_IPFS_CID = 'QmfRdhzxdZXg3fAwrMwxbZDwnENFiDuxD4mXDagx83YQV6';
+      const TOOL_IPFS_CID = LitAuth.actionIpfsIds[0];
       const [policyData] = await policyContract.getActionPolicy(
         pkp.ethAddress,
         TOOL_IPFS_CID

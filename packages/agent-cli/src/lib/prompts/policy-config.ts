@@ -55,7 +55,7 @@ export async function promptForToolPolicy(
         type: 'confirm',
         name: 'usePolicy',
         message: 'Would you like to configure a policy for this tool?',
-        default: false,
+        default: true,
       },
     ]);
 
