@@ -134,11 +134,11 @@ export async function setToolPolicy(
       ethers.utils.keccak256(ethers.utils.serializeTransaction(finalTx))
     );
 
+    // Convert the signature to the format ethers.js expects
+    const sig = ethers.utils.splitSignature(signature.signature);
+    const signedTx = ethers.utils.serializeTransaction(finalTx, sig);
+
     // Send the signed transaction
-    const signedTx = ethers.utils.serializeTransaction(
-      finalTx,
-      signature.signature
-    );
     return await provider.sendTransaction(signedTx);
   } catch (error) {
     throw new LitAgentError(
@@ -202,11 +202,11 @@ export async function removeToolPolicy(
       ethers.utils.keccak256(ethers.utils.serializeTransaction(finalTx))
     );
 
+    // Convert the signature to the format ethers.js expects
+    const sig = ethers.utils.splitSignature(signature.signature);
+    const signedTx = ethers.utils.serializeTransaction(finalTx, sig);
+
     // Send the signed transaction
-    const signedTx = ethers.utils.serializeTransaction(
-      finalTx,
-      signature.signature
-    );
     return await provider.sendTransaction(signedTx);
   } catch (error) {
     throw new LitAgentError(

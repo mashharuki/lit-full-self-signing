@@ -36,7 +36,7 @@ declare global {
 }
 
 export default async () => {
-  console.log('REMOVE ME 6');
+  console.log('REMOVE ME 7');
 
   try {
     async function getTokenInfo(provider: any) {
