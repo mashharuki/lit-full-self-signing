@@ -130,7 +130,73 @@ export class AgentCLI {
               return allParams;
             },
             setNewToolPolicyCallback: async (tool, currentPolicy) => {
-              return promptForToolPolicy(tool, currentPolicy);
+              while (true) {
+                const { usePolicy, policyValues } = await promptForToolPolicy(
+                  tool,
+                  currentPolicy
+                );
+                if (!usePolicy) {
+                  const { proceedWithoutPolicy } = await inquirer.prompt([
+                    {
+                      type: 'confirm',
+                      name: 'proceedWithoutPolicy',
+                      message:
+                        'Would you like to proceed without a policy? This means there will be no restrictions on tool usage.',
+                      default: false,
+                    },
+                  ]);
+                  if (proceedWithoutPolicy) {
+                    return { usePolicy: false };
+                  }
+                  // If they don't want to proceed without a policy, loop and try again
+                  continue;
+                }
+
+                try {
+                  return { usePolicy: true, policyValues };
+                } catch (error) {
+                  if (
+                    error instanceof LitAgentError &&
+                    error.type === LitAgentErrorType.TOOL_POLICY_FAILED
+                  ) {
+                    logger.error(`Failed to set tool policy: ${error.message}`);
+                    if (error.details?.originalError) {
+                      logger.error(
+                        `Reason: ${error.details.originalError.message}`
+                      );
+                    }
+                    const { retry } = await inquirer.prompt([
+                      {
+                        type: 'confirm',
+                        name: 'retry',
+                        message:
+                          'Would you like to try setting the policy again?',
+                        default: true,
+                      },
+                    ]);
+                    if (!retry) {
+                      const { proceedWithoutPolicy } = await inquirer.prompt([
+                        {
+                          type: 'confirm',
+                          name: 'proceedWithoutPolicy',
+                          message:
+                            'Would you like to proceed without a policy? This means there will be no restrictions on tool usage.',
+                          default: false,
+                        },
+                      ]);
+                      if (proceedWithoutPolicy) {
+                        return { usePolicy: false };
+                      }
+                      // If they don't want to proceed without a policy, loop and try again
+                      continue;
+                    }
+                    // If they want to retry, loop and try again
+                    continue;
+                  }
+                  // For other errors, rethrow
+                  throw error;
+                }
+              }
             },
             failedPolicyCallback: async (tool, params, policy, error) => {
               logger.error(`Policy validation failed: ${error.message}`);

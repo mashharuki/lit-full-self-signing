@@ -37,13 +37,29 @@ export async function handleToolPermission(
             await signer.setToolPolicy({
               ipfsCid: tool.ipfsCid,
               policy: policyValues,
+              // @TODO get version from tool
               version: '1.0.0',
             });
           } catch (error) {
-            // Log the error but don't block the tool permission
-            console.warn(
-              'Failed to set tool policy. Tool will be permitted without a policy.',
-              error instanceof Error ? error.message : String(error)
+            let errorMessage = 'Failed to set tool policy';
+            if (error instanceof Error) {
+              errorMessage = error.message;
+              const match = error.message.match(/\{.*\}/);
+              if (match) {
+                try {
+                  const parsed = JSON.parse(match[0]);
+                  if (parsed.error?.message) {
+                    errorMessage = parsed.error.message;
+                  }
+                } catch {
+                  // Ignore JSON parse errors as we'll use the original error message
+                }
+              }
+            }
+            throw new LitAgentError(
+              LitAgentErrorType.TOOL_POLICY_FAILED,
+              errorMessage,
+              { tool, policy: policyValues, originalError: error }
             );
           }
         }

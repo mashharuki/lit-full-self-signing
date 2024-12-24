@@ -50,12 +50,27 @@ export async function setToolPolicy(
     data,
   };
 
+  // Estimate gas for the transaction
+  const gasEstimate = await provider.estimateGas({
+    ...tx,
+    from: pkpAddress,
+  });
+
+  // Add gas parameters to the transaction
+  const finalTx = {
+    ...tx,
+    gasLimit: gasEstimate.mul(120).div(100), // Add 20% buffer
+  };
+
   const signature = await signCallback(
-    ethers.utils.keccak256(ethers.utils.serializeTransaction(tx))
+    ethers.utils.keccak256(ethers.utils.serializeTransaction(finalTx))
   );
 
   // Send the signed transaction
-  const signedTx = ethers.utils.serializeTransaction(tx, signature.signature);
+  const signedTx = ethers.utils.serializeTransaction(
+    finalTx,
+    signature.signature
+  );
   return provider.sendTransaction(signedTx);
 }
 
