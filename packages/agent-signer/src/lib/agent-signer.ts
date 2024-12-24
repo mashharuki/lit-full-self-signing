@@ -142,7 +142,10 @@ export class AgentSigner {
       );
 
       // Verify the contract exists by calling a view function
-      await this.toolPolicyContract.owner();
+      await this.toolPolicyContract.getActionPolicy(
+        this.ethersWallet.address,
+        '0x0000000000000000000000000000000000000000000000000000000000000000' // dummy IPFS CID
+      );
     } catch (error) {
       throw new Error(
         `Failed to initialize tool policy registry: Contract not found at ${contractAddress} or is not a valid tool policy registry`

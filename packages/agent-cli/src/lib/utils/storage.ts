@@ -24,6 +24,7 @@ const WALLET_STORAGE_KEY = 'auth-wallet';
 const CHAIN_CONFIG_STORAGE_KEY = 'chain_configs';
 const LAST_USED_CHAIN_KEY = 'last_used_chain';
 const TOOL_POLICY_REGISTRY_CONFIG = 'tool_policy_registry_config';
+const USE_DEFAULT_REGISTRY_KEY = 'use_default_registry';
 
 export interface ToolPolicyRegistryConfig {
   rpcUrl: string;
@@ -127,6 +128,15 @@ class Storage {
 
   setToolPolicyRegistryConfig(config: ToolPolicyRegistryConfig): void {
     this.setItem(TOOL_POLICY_REGISTRY_CONFIG, JSON.stringify(config));
+  }
+
+  getUseDefaultRegistry(): boolean | null {
+    const value = this.getItem(USE_DEFAULT_REGISTRY_KEY);
+    return value ? value === 'true' : null;
+  }
+
+  setUseDefaultRegistry(useDefault: boolean): void {
+    this.setItem(USE_DEFAULT_REGISTRY_KEY, useDefault.toString());
   }
 }
 

@@ -163,11 +163,22 @@ export async function promptForToolPolicyRegistryConfig(): Promise<
     }
   | undefined
 > {
-  const existingConfig = storage.getToolPolicyRegistryConfig();
-  if (existingConfig) {
-    return existingConfig;
+  // Check if we have a stored preference
+  const useDefault = storage.getUseDefaultRegistry();
+  const customConfig = storage.getToolPolicyRegistryConfig();
+
+  if (useDefault !== null) {
+    // If we know they want default, return undefined to use AgentSigner defaults
+    if (useDefault) {
+      return undefined;
+    }
+    // If they want custom and we have it stored, return it
+    if (customConfig) {
+      return customConfig;
+    }
   }
 
+  // First time setup - ask user for preference
   const { useDefaultConfig } = await inquirer.prompt([
     {
       type: 'confirm',
@@ -178,36 +189,41 @@ export async function promptForToolPolicyRegistryConfig(): Promise<
     },
   ]);
 
-  if (!useDefaultConfig) {
-    const { rpcUrl, contractAddress } = await inquirer.prompt([
-      {
-        type: 'input',
-        name: 'rpcUrl',
-        message: 'Enter the RPC URL for the tool policy registry:',
-        default: 'https://yellowstone-rpc.litprotocol.com/',
-        validate: (input: string) => {
-          if (!input) return 'RPC URL is required';
-          if (!input.startsWith('http')) return 'Invalid RPC URL';
-          return true;
-        },
-      },
-      {
-        type: 'input',
-        name: 'contractAddress',
-        message: 'Enter the contract address for the tool policy registry:',
-        default: '0xD78e1C1183A29794A092dDA7dB526A91FdE36020',
-        validate: (input: string) => {
-          if (!input) return 'Contract address is required';
-          if (!input.startsWith('0x')) return 'Invalid contract address';
-          return true;
-        },
-      },
-    ]);
-
-    const config = { rpcUrl, contractAddress };
-    storage.setToolPolicyRegistryConfig(config);
-    return config;
+  if (useDefaultConfig) {
+    // Store that they want to use default
+    storage.setUseDefaultRegistry(true);
+    return undefined;
   }
 
-  return undefined;
+  // Get custom configuration
+  const { rpcUrl, contractAddress } = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'rpcUrl',
+      message: 'Enter the RPC URL for the tool policy registry:',
+      default: 'https://yellowstone-rpc.litprotocol.com/',
+      validate: (input: string) => {
+        if (!input) return 'RPC URL is required';
+        if (!input.startsWith('http')) return 'Invalid RPC URL';
+        return true;
+      },
+    },
+    {
+      type: 'input',
+      name: 'contractAddress',
+      message: 'Enter the contract address for the tool policy registry:',
+      default: '0xD78e1C1183A29794A092dDA7dB526A91FdE36020',
+      validate: (input: string) => {
+        if (!input) return 'Contract address is required';
+        if (!input.startsWith('0x')) return 'Invalid contract address';
+        return true;
+      },
+    },
+  ]);
+
+  const config = { rpcUrl, contractAddress };
+  // Store that they don't want default and their custom config
+  storage.setUseDefaultRegistry(false);
+  storage.setToolPolicyRegistryConfig(config);
+  return config;
 }

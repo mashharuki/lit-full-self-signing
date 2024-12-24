@@ -36,7 +36,7 @@ export class AgentCLI {
       this.litAgent = new LitAgent(
         authPrivateKey,
         openAiKey,
-        'gpt-4',
+        undefined,
         toolPolicyRegistryConfig
           ? {
               rpcUrl: toolPolicyRegistryConfig.rpcUrl,
