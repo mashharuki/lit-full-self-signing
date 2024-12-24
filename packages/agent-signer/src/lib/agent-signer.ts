@@ -113,6 +113,20 @@ export class AgentSigner {
   }
 
   /**
+   * Initialize the tool policy registry
+   */
+  private async initToolPolicyRegistry(contractAddress: string) {
+    if (!this.ethersWallet) {
+      throw new Error('Agent signer not properly initialized');
+    }
+
+    this.toolPolicyContract = createToolPolicyContract(
+      contractAddress,
+      this.ethersWallet.provider
+    );
+  }
+
+  /**
    * Create a new PKP wallet
    */
   async createWallet(options: CapacityCreditMintOptions = {}) {
@@ -224,20 +238,6 @@ export class AgentSigner {
       }
       throw error;
     }
-  }
-
-  /**
-   * Initialize the tool policy registry
-   */
-  private async initToolPolicyRegistry(contractAddress: string) {
-    if (!this.ethersWallet) {
-      throw new Error('Agent signer not properly initialized');
-    }
-
-    this.toolPolicyContract = createToolPolicyContract(
-      contractAddress,
-      this.ethersWallet.provider
-    );
   }
 
   /**

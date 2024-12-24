@@ -108,7 +108,7 @@ export class AgentCLI {
               });
               return allParams;
             },
-            policyCallback: async (tool, currentPolicy) => {
+            setNewToolPolicyCallback: async (tool, currentPolicy) => {
               return promptForToolPolicy(tool, currentPolicy);
             },
           }

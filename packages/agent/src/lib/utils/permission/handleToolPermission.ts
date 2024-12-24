@@ -7,7 +7,11 @@ import { permitTool } from './permitTool';
 export async function handleToolPermission(
   signer: AgentSigner,
   tool: ToolInfo,
-  permissionCallback?: (tool: ToolInfo) => Promise<boolean>
+  permissionCallback?: (tool: ToolInfo) => Promise<boolean>,
+  setNewToolPolicyCallback?: (
+    tool: ToolInfo,
+    currentPolicy: any | null
+  ) => Promise<{ usePolicy: boolean; policyValues?: any }>
 ): Promise<void> {
   const isPermitted = await checkToolPermission(signer, tool);
   if (!isPermitted) {
@@ -21,6 +25,21 @@ export async function handleToolPermission(
         );
       }
       await permitTool(signer, tool.ipfsCid);
+
+      // After permitting the tool, prompt for policy configuration
+      if (setNewToolPolicyCallback) {
+        const { usePolicy, policyValues } = await setNewToolPolicyCallback(
+          tool,
+          null
+        );
+        if (usePolicy && policyValues) {
+          await signer.setToolPolicy({
+            ipfsCid: tool.ipfsCid,
+            policy: policyValues,
+            version: '1.0.0',
+          });
+        }
+      }
     } else {
       throw new LitAgentError(
         LitAgentErrorType.TOOL_PERMISSION_FAILED,

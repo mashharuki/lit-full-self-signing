@@ -46,7 +46,7 @@ export class LitAgent {
         tool: ToolInfo,
         missingParams: string[]
       ) => Promise<Record<string, string>>;
-      policyCallback?: (
+      setNewToolPolicyCallback?: (
         tool: ToolInfo,
         currentPolicy: any | null
       ) => Promise<{ usePolicy: boolean; policyValues?: any }>;
@@ -61,7 +61,8 @@ export class LitAgent {
         await handleToolPermission(
           this.signer,
           tool,
-          options.permissionCallback
+          options.permissionCallback,
+          options.setNewToolPolicyCallback
         );
       } catch (error) {
         if (
@@ -77,48 +78,45 @@ export class LitAgent {
         throw error;
       }
 
+      // Get current policy from registry
+      let decodedPolicy = null;
+      try {
+        const currentPolicy = await this.signer.getToolPolicy(ipfsCid);
+        if (currentPolicy.policy.length > 0) {
+          const registryTool = getToolFromRegistry(tool.name);
+          decodedPolicy = registryTool.Policy.decode(currentPolicy.policy);
+        }
+      } catch (error) {
+        // If policy registry is not initialized or there's no policy, continue without it
+        if (
+          !(
+            error instanceof Error &&
+            error.message === 'Tool policy manager not initialized'
+          )
+        ) {
+          throw error;
+        }
+      }
+
       // Validate and collect parameters
-      let finalParams = await validateAndCollectParameters(
+      const finalParams = await validateAndCollectParameters(
         tool,
         initialParams,
         options.parameterCallback
       );
 
-      // Handle policy if callback is provided
-      if (options.policyCallback) {
-        const { usePolicy, policyValues } = await options.policyCallback(
-          tool,
-          null
-        );
-        if (usePolicy && policyValues) {
-          try {
-            const registryTool = getToolFromRegistry(tool.name);
-            // Validate policy schema
-            registryTool.Policy.schema.parse(policyValues);
-            // Validate parameters against policy restrictions
-            try {
-              validateParamsAgainstPolicy(tool, finalParams, policyValues);
-            } catch (error) {
-              throw new LitAgentError(
-                LitAgentErrorType.TOOL_VALIDATION_FAILED,
-                error instanceof Error ? error.message : 'Invalid policy values'
-              );
-            }
-            // Encode policy
-            const encodedPolicy = registryTool.Policy.encode(policyValues);
-            finalParams = {
-              ...finalParams,
-              policy: encodedPolicy,
-            };
-          } catch (error) {
-            throw new LitAgentError(
-              LitAgentErrorType.TOOL_VALIDATION_FAILED,
-              error instanceof LitAgentError
-                ? error.message
-                : 'Invalid policy values',
-              { tool, policyValues, originalError: error }
-            );
-          }
+      // If we have a policy, validate parameters against it
+      if (decodedPolicy) {
+        try {
+          validateParamsAgainstPolicy(tool, finalParams, decodedPolicy);
+        } catch (error) {
+          throw new LitAgentError(
+            LitAgentErrorType.TOOL_VALIDATION_FAILED,
+            error instanceof Error
+              ? error.message
+              : 'Parameters do not meet policy requirements',
+            { tool, policy: decodedPolicy, originalError: error }
+          );
         }
       }
 
