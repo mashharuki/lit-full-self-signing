@@ -203,16 +203,12 @@ export default async () => {
               JSON.stringify(errorDetails, null, 2)
             );
 
-            // Construct a detailed error message
-            const errorMessage = [
-              err.reason || err.message,
-              err.error?.message,
-              err.error?.data?.message,
-            ]
-              .filter(Boolean)
-              .join(': ');
-
-            throw new Error(errorMessage || 'Transaction failed');
+            // Return stringified error response
+            return JSON.stringify({
+              error: true,
+              message: err.reason || err.message || 'Transaction failed',
+              details: errorDetails,
+            });
           }
         }
       );
@@ -228,16 +224,33 @@ export default async () => {
       tokenInfo.amount,
       gasData
     );
-    const transferHash = await broadcastTransaction(signedTx);
+    const result = await broadcastTransaction(signedTx);
 
-    if (!transferHash) {
+    console.log('Result:', result);
+
+    // Try to parse the result
+    let parsedResult;
+    try {
+      parsedResult = JSON.parse(result);
+    } catch {
+      // If it's not JSON, assume it's a transaction hash
+      parsedResult = result;
+    }
+
+    // Check if result is an error object
+    if (typeof parsedResult === 'object' && parsedResult.error) {
+      throw new Error(parsedResult.message);
+    }
+
+    // At this point, result should be a transaction hash
+    if (!parsedResult) {
       throw new Error('Transaction failed: No transaction hash returned');
     }
 
-    if (!ethers.utils.isHexString(transferHash)) {
+    if (!ethers.utils.isHexString(parsedResult)) {
       throw new Error(
         `Transaction failed: Invalid transaction hash format. Received: ${JSON.stringify(
-          transferHash
+          parsedResult
         )}`
       );
     }
@@ -245,7 +258,7 @@ export default async () => {
     Lit.Actions.setResponse({
       response: JSON.stringify({
         status: 'success',
-        transferHash,
+        transferHash: parsedResult,
       }),
     });
   } catch (err: any) {
@@ -262,18 +275,12 @@ export default async () => {
     };
 
     // Construct a detailed error message
-    const errorMessage = [
-      err.reason || err.message,
-      err.error?.message,
-      err.error?.data?.message,
-    ]
-      .filter(Boolean)
-      .join(': ');
+    const errorMessage = err.message || String(err);
 
     Lit.Actions.setResponse({
       response: JSON.stringify({
         status: 'error',
-        error: errorMessage || String(err),
+        error: errorMessage,
         details: errorDetails,
       }),
     });

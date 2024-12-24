@@ -144,7 +144,7 @@ export class AgentCLI {
 
         if (!executionResult.success) {
           if (executionResult.reason) {
-            logger.info(executionResult.reason);
+            logger.error(`Tool execution failed: ${executionResult.reason}`);
           }
           continue;
         }
