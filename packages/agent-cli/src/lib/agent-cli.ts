@@ -111,32 +111,6 @@ export class AgentCLI {
           continue;
         }
 
-        if (!result.isPermitted) {
-          logger.warn('Tool Permission Required');
-          logger.log(`Name: ${result.matchedTool.name}`);
-          logger.log(`Description: ${result.matchedTool.description}`);
-          logger.log(`IPFS CID: ${result.matchedTool.ipfsCid}`);
-          logger.log('Parameters:');
-          result.matchedTool.parameters.forEach((param) => {
-            logger.log(`  - ${param.name}: ${param.description}`);
-          });
-
-          const { shouldPermit } = await inquirer.prompt([
-            {
-              type: 'confirm',
-              name: 'shouldPermit',
-              message:
-                'Would you like to permit this tool for your agent wallet?',
-              default: false,
-            },
-          ]);
-
-          if (!shouldPermit) {
-            logger.info('Operation cancelled by user');
-            continue;
-          }
-        }
-
         logger.info('Executing tool...');
         const executionResult = await this.litAgent.executeTool(
           result.matchedTool.ipfsCid,
@@ -145,9 +119,7 @@ export class AgentCLI {
             permissionCallback: async (tool) => {
               const shouldPermit = await promptForToolPermission(tool);
               if (!shouldPermit) {
-                logger.info(
-                  'Tool permission denied. Returning to main prompt...'
-                );
+                logger.info('Operation cancelled by user');
               }
               return shouldPermit;
             },
