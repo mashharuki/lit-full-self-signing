@@ -10,12 +10,14 @@ declare global {
       Interface: any;
       parseUnits: any;
       formatUnits: any;
+      formatEther: any;
       arrayify: any;
       keccak256: any;
       serializeTransaction: any;
       joinSignature: any;
       isHexString: any;
       getAddress: any;
+      defaultAbiCoder: any;
     };
     BigNumber: any;
     Contract: any;
@@ -36,9 +38,85 @@ declare global {
 }
 
 export default async () => {
+  // Don't remove me yet, still debugging
   console.log('REMOVE ME 11');
 
   try {
+    async function validatePolicy(amount: any) {
+      // Tool policy registry contract
+      const TOOL_POLICY_ABI = [
+        'function getActionPolicy(address pkp, string calldata ipfsCid) external view returns (bytes memory policy, string memory version)',
+      ];
+
+      // Create contract instance
+      // TODO: This is a temporary hardcoded value. The user can specify the policy registry, so this should be dynamic.
+      const TOOL_POLICY_REGISTRY = '0xD78e1C1183A29794A092dDA7dB526A91FdE36020';
+      const policyProvider = new ethers.providers.JsonRpcProvider(
+        await Lit.Actions.getRpcUrl({
+          chain: 'yellowstone',
+        })
+      );
+      const policyContract = new ethers.Contract(
+        TOOL_POLICY_REGISTRY,
+        TOOL_POLICY_ABI,
+        policyProvider
+      );
+
+      // Get policy for this tool
+      const TOOL_IPFS_CID = 'QmfRdhzxdZXg3fAwrMwxbZDwnENFiDuxD4mXDagx83YQV6';
+      const [policyData] = await policyContract.getActionPolicy(
+        pkp.ethAddress,
+        TOOL_IPFS_CID
+      );
+
+      // Decode policy
+      const decodedPolicy = ethers.utils.defaultAbiCoder.decode(
+        [
+          'tuple(uint256 maxAmount, address[] allowedTokens, address[] allowedRecipients)',
+        ],
+        policyData
+      )[0];
+
+      // Validate amount
+      if (amount.gt(decodedPolicy.maxAmount)) {
+        throw new Error(
+          `Amount exceeds policy limit. Max allowed: ${ethers.utils.formatEther(
+            decodedPolicy.maxAmount
+          )} ETH`
+        );
+      }
+
+      // Validate token
+      if (
+        decodedPolicy.allowedTokens.length > 0 &&
+        !decodedPolicy.allowedTokens.includes(params.tokenIn.toLowerCase())
+      ) {
+        throw new Error(
+          `Token ${
+            params.tokenIn
+          } not allowed. Allowed tokens: ${decodedPolicy.allowedTokens.join(
+            ', '
+          )}`
+        );
+      }
+
+      // Validate recipient
+      if (
+        decodedPolicy.allowedRecipients.length > 0 &&
+        !decodedPolicy.allowedRecipients.includes(
+          params.recipientAddress.toLowerCase()
+        )
+      ) {
+        throw new Error(
+          `Recipient ${
+            params.recipientAddress
+          } not allowed. Allowed recipients: ${decodedPolicy.allowedRecipients.join(
+            ', '
+          )}`
+        );
+      }
+    }
+
     async function getTokenInfo(provider: any) {
       console.log('Getting token info for:', params.tokenIn);
 
@@ -246,6 +324,10 @@ export default async () => {
     // Main Execution
     const provider = new ethers.providers.JsonRpcProvider(params.rpcUrl);
     const tokenInfo = await getTokenInfo(provider);
+
+    // Validate against policy
+    await validatePolicy(tokenInfo.amount);
+
     const gasData = await getGasData();
     const gasLimit = await estimateGasLimit(provider, tokenInfo.amount);
     const signedTx = await createAndSignTransaction(
