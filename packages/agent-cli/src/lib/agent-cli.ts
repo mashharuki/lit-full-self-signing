@@ -157,7 +157,16 @@ export class AgentCLI {
                 }
                 return { usePolicy: true, policyValues };
               };
-              return handlePolicySetup(tool, currentPolicy);
+              const result = await handlePolicySetup(tool, currentPolicy);
+              if (result.usePolicy && result.policyValues) {
+                logger.info('Registering policy on chain...');
+              }
+              return result;
+            },
+            onPolicyRegistered: (txHash: string) => {
+              logger.success(
+                `Successfully registered policy on chain. Transaction hash: ${txHash}`
+              );
             },
             failedPolicyCallback: async (tool, params, policy, error) => {
               logger.error(`Policy validation failed: ${error.message}`);
@@ -201,6 +210,8 @@ export class AgentCLI {
           `Result: ${JSON.stringify(executionResult.result, null, 2)}`
         );
       } catch (error) {
+        console.log('THIS ERROR 2', error);
+
         if (error instanceof LitAgentError) {
           switch (error.type) {
             case LitAgentErrorType.TOOL_EXECUTION_FAILED:
@@ -212,7 +223,7 @@ export class AgentCLI {
             case LitAgentErrorType.TOOL_VALIDATION_FAILED:
               logger.error(`Policy validation failed: ${error.message}`);
               break;
-            case LitAgentErrorType.TOOL_POLICY_FAILED: {
+            case LitAgentErrorType.TOOL_POLICY_REGISTRATION_FAILED: {
               logger.error(`Failed to set tool policy: ${error.message}`);
               if (error.details?.originalError) {
                 logger.error(`Reason: ${error.details.originalError.message}`);

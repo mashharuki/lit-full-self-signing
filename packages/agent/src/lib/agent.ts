@@ -67,6 +67,7 @@ export class LitAgent {
         policy: any,
         error: Error
       ) => Promise<Record<string, string> | null>;
+      onPolicyRegistered?: (txHash: string) => void;
     } = {}
   ): Promise<{ success: boolean; result?: any; reason?: string }> {
     try {
@@ -75,12 +76,15 @@ export class LitAgent {
 
       // Handle permissions
       try {
-        await handleToolPermission(
+        const { txHash } = await handleToolPermission(
           this.signer,
           tool,
           options.permissionCallback,
           options.setNewToolPolicyCallback
         );
+        if (txHash && options.onPolicyRegistered) {
+          options.onPolicyRegistered(txHash);
+        }
       } catch (error) {
         if (
           error instanceof LitAgentError &&
@@ -92,6 +96,18 @@ export class LitAgent {
             reason: error.message,
           };
         }
+        // For policy registration errors, return failure
+        if (
+          error instanceof LitAgentError &&
+          error.type === LitAgentErrorType.TOOL_POLICY_REGISTRATION_FAILED
+        ) {
+          return {
+            success: false,
+            reason: error.message,
+          };
+        }
+
+        console.log('THIS ERROR', error);
         throw error;
       }
 

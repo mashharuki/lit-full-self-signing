@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 import type { SigResponse } from '@lit-protocol/types';
 import { SetToolPolicyOptions, ToolPolicy, RegisteredTools } from '../types';
+import { LitAgentError, LitAgentErrorType } from '../errors';
 
 const TOOL_POLICY_ABI = [
   'function setActionPolicy(string calldata ipfsCid, bytes calldata policy, string calldata version) external',
@@ -31,47 +32,94 @@ export async function setToolPolicy(
 ): Promise<ethers.ContractTransaction> {
   const { ipfsCid, policy, version } = options;
 
-  // ABI encode the policy data
-  const encodedPolicy = ethers.utils.defaultAbiCoder.encode(
-    [typeof policy === 'object' ? 'tuple' : typeof policy],
-    [policy]
-  );
+  try {
+    // ABI encode the policy data
+    const encodedPolicy = ethers.utils.defaultAbiCoder.encode(
+      [typeof policy === 'object' ? 'tuple' : typeof policy],
+      [policy]
+    );
 
-  // Encode the function call
-  const data = contract.interface.encodeFunctionData('setActionPolicy', [
-    ipfsCid,
-    encodedPolicy,
-    version,
-  ]);
+    // Encode the function call
+    const data = contract.interface.encodeFunctionData('setActionPolicy', [
+      ipfsCid,
+      encodedPolicy,
+      version,
+    ]);
 
-  // Sign and send the transaction
-  const tx = {
-    to: contract.address,
-    data,
-  };
+    // Sign and send the transaction
+    const tx = {
+      to: contract.address,
+      data,
+    };
 
-  // Estimate gas for the transaction
-  const gasEstimate = await provider.estimateGas({
-    ...tx,
-    from: pkpAddress,
-  });
+    // Estimate gas for the transaction
+    let gasEstimate;
+    try {
+      gasEstimate = await provider.estimateGas({
+        ...tx,
+        from: pkpAddress,
+      });
+    } catch (error) {
+      throw new LitAgentError(
+        LitAgentErrorType.TOOL_POLICY_REGISTRATION_FAILED,
+        `Failed to estimate gas: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        { ipfsCid, policy, error }
+      );
+    }
 
-  // Add gas parameters to the transaction
-  const finalTx = {
-    ...tx,
-    gasLimit: gasEstimate.mul(120).div(100), // Add 20% buffer
-  };
+    // Add gas parameters to the transaction
+    const finalTx = {
+      ...tx,
+      gasLimit: gasEstimate.mul(120).div(100), // Add 20% buffer
+    };
 
-  const signature = await signCallback(
-    ethers.utils.keccak256(ethers.utils.serializeTransaction(finalTx))
-  );
+    let signature;
+    try {
+      signature = await signCallback(
+        ethers.utils.keccak256(ethers.utils.serializeTransaction(finalTx))
+      );
+    } catch (error) {
+      throw new LitAgentError(
+        LitAgentErrorType.TOOL_POLICY_REGISTRATION_FAILED,
+        `Failed to sign transaction: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        { ipfsCid, policy, error }
+      );
+    }
 
-  // Send the signed transaction
-  const signedTx = ethers.utils.serializeTransaction(
-    finalTx,
-    signature.signature
-  );
-  return provider.sendTransaction(signedTx);
+    // Send the signed transaction
+    try {
+      const signedTx = ethers.utils.serializeTransaction(
+        finalTx,
+        signature.signature
+      );
+      return await provider.sendTransaction(signedTx);
+    } catch (error) {
+      throw new LitAgentError(
+        LitAgentErrorType.TOOL_POLICY_REGISTRATION_FAILED,
+        `Failed to send transaction: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        { ipfsCid, policy, error }
+      );
+    }
+  } catch (error) {
+    // If it's already a LitAgentError, rethrow it
+    if (error instanceof LitAgentError) {
+      throw error;
+    }
+    // Otherwise wrap it
+    throw new LitAgentError(
+      LitAgentErrorType.TOOL_POLICY_REGISTRATION_FAILED,
+      `Failed to set tool policy: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+      { ipfsCid, policy, error }
+    );
+  }
 }
 
 /**
@@ -84,24 +132,86 @@ export async function removeToolPolicy(
   provider: ethers.providers.Provider,
   ipfsCid: string
 ): Promise<ethers.ContractTransaction> {
-  // Encode the function call
-  const data = contract.interface.encodeFunctionData('removeActionPolicy', [
-    ipfsCid,
-  ]);
+  try {
+    // Encode the function call
+    const data = contract.interface.encodeFunctionData('removeActionPolicy', [
+      ipfsCid,
+    ]);
 
-  // Sign and send the transaction
-  const tx = {
-    to: contract.address,
-    data,
-  };
+    // Sign and send the transaction
+    const tx = {
+      to: contract.address,
+      data,
+    };
 
-  const signature = await signCallback(
-    ethers.utils.keccak256(ethers.utils.serializeTransaction(tx))
-  );
+    // Estimate gas for the transaction
+    let gasEstimate;
+    try {
+      gasEstimate = await provider.estimateGas({
+        ...tx,
+        from: pkpAddress,
+      });
+    } catch (error) {
+      throw new LitAgentError(
+        LitAgentErrorType.TOOL_POLICY_REGISTRATION_FAILED,
+        `Failed to estimate gas: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        { ipfsCid, error }
+      );
+    }
 
-  // Send the signed transaction
-  const signedTx = ethers.utils.serializeTransaction(tx, signature.signature);
-  return provider.sendTransaction(signedTx);
+    // Add gas parameters to the transaction
+    const finalTx = {
+      ...tx,
+      gasLimit: gasEstimate.mul(120).div(100), // Add 20% buffer
+    };
+
+    let signature;
+    try {
+      signature = await signCallback(
+        ethers.utils.keccak256(ethers.utils.serializeTransaction(finalTx))
+      );
+    } catch (error) {
+      throw new LitAgentError(
+        LitAgentErrorType.TOOL_POLICY_REGISTRATION_FAILED,
+        `Failed to sign transaction: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        { ipfsCid, error }
+      );
+    }
+
+    // Send the signed transaction
+    try {
+      const signedTx = ethers.utils.serializeTransaction(
+        finalTx,
+        signature.signature
+      );
+      return await provider.sendTransaction(signedTx);
+    } catch (error) {
+      throw new LitAgentError(
+        LitAgentErrorType.TOOL_POLICY_REGISTRATION_FAILED,
+        `Failed to send transaction: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        { ipfsCid, error }
+      );
+    }
+  } catch (error) {
+    // If it's already a LitAgentError, rethrow it
+    if (error instanceof LitAgentError) {
+      throw error;
+    }
+    // Otherwise wrap it
+    throw new LitAgentError(
+      LitAgentErrorType.TOOL_POLICY_REGISTRATION_FAILED,
+      `Failed to remove tool policy: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+      { ipfsCid, error }
+    );
+  }
 }
 
 /**

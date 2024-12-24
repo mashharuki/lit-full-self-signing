@@ -1,7 +1,3 @@
-import { LitContracts } from '@lit-protocol/contracts-sdk';
-import { LIT_RPC } from '@lit-protocol/constants';
-import { LIT_NETWORK } from '@lit-protocol/constants';
-import { LitNodeClientNodeJs } from '@lit-protocol/lit-node-client-nodejs';
 import { ethers } from 'ethers';
 import type {
   ExecuteJsResponse,
@@ -13,6 +9,10 @@ import {
   AUTH_METHOD_SCOPE,
   AUTH_METHOD_SCOPE_VALUES,
 } from '@lit-protocol/constants';
+import { LitContracts } from '@lit-protocol/contracts-sdk';
+import { LIT_RPC } from '@lit-protocol/constants';
+import { LIT_NETWORK } from '@lit-protocol/constants';
+import { LitNodeClientNodeJs } from '@lit-protocol/lit-node-client-nodejs';
 
 import {
   CapacityCreditMintOptions,
@@ -40,6 +40,7 @@ import {
   getToolPolicy,
   getRegisteredTools,
 } from './utils';
+import { LitAgentError, LitAgentErrorType } from './errors';
 
 export class AgentSigner {
   private litNodeClient: LitNodeClientNodeJs | null = null;
@@ -280,13 +281,26 @@ export class AgentSigner {
       throw new Error('Tool policy manager not initialized');
     }
 
-    return setToolPolicy(
-      this.toolPolicyContract,
-      this.pkpInfo.ethAddress,
-      (toSign: string) => this.pkpSign({ toSign }),
-      this.ethersWallet.provider,
-      options
-    );
+    try {
+      return await setToolPolicy(
+        this.toolPolicyContract,
+        this.pkpInfo.ethAddress,
+        (toSign: string) => this.pkpSign({ toSign }),
+        this.ethersWallet.provider,
+        options
+      );
+    } catch (error) {
+      // Wrap any errors in LitAgentError
+      let errorMessage = 'Failed to set tool policy';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      throw new LitAgentError(
+        LitAgentErrorType.TOOL_POLICY_REGISTRATION_FAILED,
+        errorMessage,
+        { options, originalError: error }
+      );
+    }
   }
 
   /**
@@ -297,13 +311,29 @@ export class AgentSigner {
       throw new Error('Tool policy manager not initialized');
     }
 
-    return removeToolPolicy(
-      this.toolPolicyContract,
-      this.pkpInfo.ethAddress,
-      (toSign: string) => this.pkpSign({ toSign }),
-      this.ethersWallet.provider,
-      ipfsCid
-    );
+    try {
+      return await removeToolPolicy(
+        this.toolPolicyContract,
+        this.pkpInfo.ethAddress,
+        (toSign: string) => this.pkpSign({ toSign }),
+        this.ethersWallet.provider,
+        ipfsCid
+      );
+    } catch (error) {
+      // Wrap any errors in LitAgentError
+      if (error instanceof LitAgentError) {
+        throw error;
+      }
+      let errorMessage = 'Failed to remove tool policy';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      throw new LitAgentError(
+        LitAgentErrorType.TOOL_POLICY_REGISTRATION_FAILED,
+        errorMessage,
+        { ipfsCid, originalError: error }
+      );
+    }
   }
 
   /**

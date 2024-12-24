@@ -12,7 +12,7 @@ export async function handleToolPermission(
     tool: ToolInfo,
     currentPolicy: any | null
   ) => Promise<{ usePolicy: boolean; policyValues?: any }>
-): Promise<void> {
+): Promise<{ txHash?: string }> {
   const isPermitted = await checkToolPermission(signer, tool);
   if (!isPermitted) {
     if (permissionCallback) {
@@ -38,32 +38,19 @@ export async function handleToolPermission(
           }
           if (policyValues) {
             try {
-              await signer.setToolPolicy({
+              const tx = await signer.setToolPolicy({
                 ipfsCid: tool.ipfsCid,
                 policy: policyValues,
                 version: '1.0.0',
               });
-              break;
+              return { txHash: tx.hash };
             } catch (error) {
-              let errorMessage = 'Failed to set tool policy';
-              if (error instanceof Error) {
-                errorMessage = error.message;
-                const match = error.message.match(/\{.*\}/);
-                if (match) {
-                  try {
-                    const parsed = JSON.parse(match[0]);
-                    if (parsed.error?.message) {
-                      errorMessage = parsed.error.message;
-                    }
-                  } catch {
-                    // Ignore JSON parse errors as we'll use the original error message
-                  }
-                }
-              }
               // Throw error to be caught by CLI for retry handling
               throw new LitAgentError(
-                LitAgentErrorType.TOOL_POLICY_FAILED,
-                errorMessage,
+                LitAgentErrorType.TOOL_POLICY_REGISTRATION_FAILED,
+                `Failed to set tool policy: ${
+                  error instanceof Error ? error.message : String(error)
+                }`,
                 { tool, policy: policyValues, originalError: error }
               );
             }
@@ -78,4 +65,5 @@ export async function handleToolPermission(
       );
     }
   }
+  return {};
 }
