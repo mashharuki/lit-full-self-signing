@@ -64,9 +64,11 @@ export class AgentSigner {
     {
       litNetwork = LIT_NETWORK.DatilTest,
       debug = false,
+      toolPolicyRegistryAddress,
     }: {
       litNetwork?: LIT_NETWORKS_KEYS;
       debug?: boolean;
+      toolPolicyRegistryAddress?: string;
     } = {}
   ): Promise<AgentSigner> {
     const agentSigner = new AgentSigner();
@@ -101,6 +103,11 @@ export class AgentSigner {
 
     // Load PKP from storage
     agentSigner.pkpInfo = loadPkpFromStorage(agentSigner.storage);
+
+    // Initialize tool policy registry if address provided
+    if (toolPolicyRegistryAddress) {
+      await agentSigner.initToolPolicyRegistry(toolPolicyRegistryAddress);
+    }
 
     return agentSigner;
   }
@@ -222,7 +229,7 @@ export class AgentSigner {
   /**
    * Initialize the tool policy registry
    */
-  async initToolPolicyRegistry(contractAddress: string) {
+  private async initToolPolicyRegistry(contractAddress: string) {
     if (!this.ethersWallet) {
       throw new Error('Agent signer not properly initialized');
     }
