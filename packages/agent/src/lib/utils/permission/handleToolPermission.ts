@@ -12,7 +12,7 @@ export async function handleToolPermission(
     tool: ToolInfo,
     currentPolicy: any | null
   ) => Promise<{ usePolicy: boolean; policyValues?: any }>
-): Promise<{ txHash?: string }> {
+): Promise<{ success?: boolean; txHash?: string }> {
   const isPermitted = await checkToolPermission(signer, tool);
   if (!isPermitted) {
     if (permissionCallback) {
@@ -38,17 +38,12 @@ export async function handleToolPermission(
           }
           if (policyValues) {
             try {
-              console.log(
-                `Setting tool (${tool.ipfsCid}) policy:`,
-                policyValues
-              );
-
               const tx = await signer.setToolPolicy({
                 ipfsCid: tool.ipfsCid,
                 policy: policyValues,
                 version: policyValues.version ?? '1.0.0',
               });
-              return { txHash: tx.hash };
+              return { success: true, txHash: tx.hash };
             } catch (error) {
               // Log the error with proper serialization
               if (error instanceof LitAgentError) {
@@ -75,5 +70,5 @@ export async function handleToolPermission(
       );
     }
   }
-  return {};
+  return { success: true };
 }

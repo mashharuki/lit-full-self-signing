@@ -163,6 +163,11 @@ export class AgentCLI {
               }
               return result;
             },
+            onPolicyRegistered: (txHash) => {
+              logger.success(
+                `Policy successfully registered! Transaction hash: ${txHash}`
+              );
+            },
           }
         );
 

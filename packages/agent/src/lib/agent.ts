@@ -69,21 +69,30 @@ export class LitAgent {
       ) => Promise<Record<string, string> | null>;
       onPolicyRegistered?: (txHash: string) => void;
     } = {}
-  ): Promise<{ success: boolean; result?: any; reason?: string }> {
+  ): Promise<{
+    success: boolean;
+    result?: any;
+    reason?: string;
+    policyRegistration?: { success: boolean; txHash: string };
+  }> {
     try {
       // Find and validate tool
       const tool = await findTool(ipfsCid);
 
       // Handle permissions
+      let policyRegistration;
       try {
-        const { txHash } = await handleToolPermission(
+        const { success, txHash } = await handleToolPermission(
           this.signer,
           tool,
           options.permissionCallback,
           options.setNewToolPolicyCallback
         );
-        if (txHash && options.onPolicyRegistered) {
-          options.onPolicyRegistered(txHash);
+        if (success && txHash) {
+          policyRegistration = { success: true, txHash };
+          if (options.onPolicyRegistered) {
+            options.onPolicyRegistered(txHash);
+          }
         }
       } catch (error) {
         if (
@@ -227,6 +236,7 @@ export class LitAgent {
       return {
         success: true,
         result,
+        policyRegistration,
       };
     } catch (error) {
       if (error instanceof LitAgentError) {

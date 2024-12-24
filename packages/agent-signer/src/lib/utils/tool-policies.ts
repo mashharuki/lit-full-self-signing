@@ -33,9 +33,6 @@ export async function setToolPolicy(
   const { ipfsCid, policy, version } = options;
 
   try {
-    // Log the policy data for debugging
-    console.log('Policy data before encoding:', policy);
-
     // Ensure maxAmount is a valid BigNumber
     const maxAmount = ethers.BigNumber.from(policy.maxAmount);
 
@@ -61,8 +58,6 @@ export async function setToolPolicy(
       ]
     );
 
-    console.log('Encoded policy:', encodedPolicy);
-
     // Encode the function call
     const data = contract.interface.encodeFunctionData('setActionPolicy', [
       ipfsCid,
@@ -70,17 +65,15 @@ export async function setToolPolicy(
       version,
     ]);
 
-    console.log('Transaction data:', data);
-
     // Sign and send the transaction
-    const tx = {
+    const txRequest = {
       to: contract.address,
       data,
     };
 
     // Estimate gas for the transaction
     const gasEstimate = await provider.estimateGas({
-      ...tx,
+      ...txRequest,
       from: pkpAddress,
     });
 
@@ -96,7 +89,7 @@ export async function setToolPolicy(
       : priorityFee;
 
     const finalTx = {
-      ...tx,
+      ...txRequest,
       type: 2, // EIP-1559 transaction
       chainId: (await provider.getNetwork()).chainId,
       nonce: await provider.getTransactionCount(pkpAddress),
@@ -104,31 +97,6 @@ export async function setToolPolicy(
       maxPriorityFeePerGas: priorityFee.toHexString(),
       gasLimit: gasEstimate.mul(120).div(100).toHexString(), // Add 20% buffer
     };
-
-    // Log transaction costs
-    console.log('Transaction costs:');
-    console.log(
-      '  Gas limit:',
-      ethers.utils.formatUnits(gasEstimate.mul(120).div(100), 'wei'),
-      'gas'
-    );
-    console.log(
-      '  Max priority fee:',
-      ethers.utils.formatEther(priorityFee),
-      'ETH'
-    );
-    console.log(
-      '  Max fee per gas:',
-      ethers.utils.formatEther(maxFeePerGas),
-      'ETH'
-    );
-    console.log(
-      '  Max total cost:',
-      ethers.utils.formatEther(maxFeePerGas.mul(gasEstimate.mul(120).div(100))),
-      'ETH'
-    );
-
-    console.log('Final transaction:', finalTx);
 
     const signature = await signCallback(
       ethers.utils.keccak256(ethers.utils.serializeTransaction(finalTx))
@@ -139,7 +107,8 @@ export async function setToolPolicy(
     const signedTx = ethers.utils.serializeTransaction(finalTx, sig);
 
     // Send the signed transaction
-    return await provider.sendTransaction(signedTx);
+    const sentTx = await provider.sendTransaction(signedTx);
+    return sentTx;
   } catch (error) {
     throw new LitAgentError(
       LitAgentErrorType.TOOL_POLICY_REGISTRATION_FAILED,
@@ -166,14 +135,14 @@ export async function removeToolPolicy(
     ]);
 
     // Sign and send the transaction
-    const tx = {
+    const txRequest = {
       to: contract.address,
       data,
     };
 
     // Estimate gas for the transaction
     const gasEstimate = await provider.estimateGas({
-      ...tx,
+      ...txRequest,
       from: pkpAddress,
     });
 
@@ -189,7 +158,7 @@ export async function removeToolPolicy(
       : priorityFee;
 
     const finalTx = {
-      ...tx,
+      ...txRequest,
       type: 2, // EIP-1559 transaction
       chainId: (await provider.getNetwork()).chainId,
       nonce: await provider.getTransactionCount(pkpAddress),
@@ -207,7 +176,8 @@ export async function removeToolPolicy(
     const signedTx = ethers.utils.serializeTransaction(finalTx, sig);
 
     // Send the signed transaction
-    return await provider.sendTransaction(signedTx);
+    const sentTx = await provider.sendTransaction(signedTx);
+    return sentTx;
   } catch (error) {
     throw new LitAgentError(
       LitAgentErrorType.TOOL_POLICY_REGISTRATION_FAILED,
