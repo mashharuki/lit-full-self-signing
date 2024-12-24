@@ -50,6 +50,12 @@ export class LitAgent {
         tool: ToolInfo,
         currentPolicy: any | null
       ) => Promise<{ usePolicy: boolean; policyValues?: any }>;
+      failedPolicyCallback?: (
+        tool: ToolInfo,
+        params: Record<string, string>,
+        policy: any,
+        error: Error
+      ) => Promise<Record<string, string> | null>;
     } = {}
   ): Promise<{ success: boolean; result?: any; reason?: string }> {
     try {
@@ -78,6 +84,13 @@ export class LitAgent {
         throw error;
       }
 
+      // Validate and collect parameters
+      const finalParams = await validateAndCollectParameters(
+        tool,
+        initialParams,
+        options.parameterCallback
+      );
+
       // Get current policy from registry
       let decodedPolicy = null;
       try {
@@ -98,30 +111,90 @@ export class LitAgent {
         }
       }
 
-      // Validate and collect parameters
-      const finalParams = await validateAndCollectParameters(
-        tool,
-        initialParams,
-        options.parameterCallback
-      );
-
       // If we have a policy, validate parameters against it
+      let validatedParams = finalParams;
       if (decodedPolicy) {
         try {
-          validateParamsAgainstPolicy(tool, finalParams, decodedPolicy);
+          validateParamsAgainstPolicy(tool, validatedParams, decodedPolicy);
         } catch (error) {
-          throw new LitAgentError(
-            LitAgentErrorType.TOOL_VALIDATION_FAILED,
-            error instanceof Error
-              ? error.message
-              : 'Parameters do not meet policy requirements',
-            { tool, policy: decodedPolicy, originalError: error }
-          );
+          // If we have a failedPolicyCallback, try to get new parameters
+          if (options.failedPolicyCallback && error instanceof Error) {
+            const newParams = await options.failedPolicyCallback(
+              tool,
+              validatedParams,
+              decodedPolicy,
+              error
+            );
+
+            // If new parameters provided, validate them again
+            if (newParams) {
+              validatedParams = newParams;
+              validateParamsAgainstPolicy(tool, validatedParams, decodedPolicy);
+            } else {
+              // If no new parameters provided, throw the original error
+              throw new LitAgentError(
+                LitAgentErrorType.TOOL_VALIDATION_FAILED,
+                error.message,
+                { tool, policy: decodedPolicy, originalError: error }
+              );
+            }
+          } else {
+            throw new LitAgentError(
+              LitAgentErrorType.TOOL_VALIDATION_FAILED,
+              error instanceof Error
+                ? error.message
+                : 'Parameters do not meet policy requirements',
+              { tool, policy: decodedPolicy, originalError: error }
+            );
+          }
         }
       }
 
-      // Execute the tool
-      const result = await executeAction(this.signer, ipfsCid, finalParams);
+      // Execute the tool with validated parameters
+      const result = await executeAction(this.signer, ipfsCid, validatedParams);
+
+      // Check for Lit Action errors in the response
+      if (result.response) {
+        try {
+          const response = JSON.parse(result.response);
+          if (response.status === 'error') {
+            // Format error message with details if available
+            let errorMessage = response.error;
+            if (response.details) {
+              // Add relevant details to the error message
+              if (response.details.reason) {
+                errorMessage += `\nReason: ${response.details.reason}`;
+              }
+              if (response.details.code) {
+                errorMessage += `\nCode: ${response.details.code}`;
+              }
+              if (response.details.error?.message) {
+                errorMessage += `\nDetails: ${response.details.error.message}`;
+              }
+            }
+
+            return {
+              success: false,
+              reason: errorMessage,
+              result,
+            };
+          }
+        } catch (e) {
+          // If response is not JSON, continue with original result
+        }
+      }
+
+      // Check for errors in logs
+      if (result.logs && result.logs.includes('Error:')) {
+        const errorMatch = result.logs.match(/Error:([^\n]+)/);
+        if (errorMatch) {
+          return {
+            success: false,
+            reason: `Lit Action error: ${errorMatch[1].trim()}`,
+            result,
+          };
+        }
+      }
 
       return {
         success: true,
@@ -129,11 +202,14 @@ export class LitAgent {
       };
     } catch (error) {
       if (error instanceof LitAgentError) {
-        throw error;
+        return {
+          success: false,
+          reason: error.message,
+        };
       }
       throw new LitAgentError(
         LitAgentErrorType.TOOL_EXECUTION_FAILED,
-        'Failed to execute tool',
+        error instanceof Error ? error.message : 'Failed to execute tool',
         { ipfsCid, params: initialParams, originalError: error }
       );
     }

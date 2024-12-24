@@ -12,6 +12,7 @@ import { promptForUserIntent } from './prompts/intent';
 import { promptForToolPermission } from './prompts/permissions';
 import { collectMissingParams } from './prompts/parameters';
 import { promptForToolPolicy } from './prompts/policy';
+import inquirer from 'inquirer';
 
 export class AgentCLI {
   private litAgent: LitAgent | null = null;
@@ -110,6 +111,33 @@ export class AgentCLI {
             },
             setNewToolPolicyCallback: async (tool, currentPolicy) => {
               return promptForToolPolicy(tool, currentPolicy);
+            },
+            failedPolicyCallback: async (tool, params, policy, error) => {
+              logger.error(`Policy validation failed: ${error.message}`);
+              logger.info('Current parameters:');
+              Object.entries(params).forEach(([key, value]) => {
+                logger.log(`  ${key}: ${value}`);
+              });
+
+              const { shouldRetry } = await inquirer.prompt([
+                {
+                  type: 'confirm',
+                  name: 'shouldRetry',
+                  message:
+                    'Would you like to provide new parameters that meet the policy requirements?',
+                  default: true,
+                },
+              ]);
+
+              if (shouldRetry) {
+                // Reuse collectMissingParams to get all parameters again
+                return collectMissingParams(tool, {
+                  foundParams: {},
+                  missingParams: Object.keys(params),
+                });
+              }
+
+              return null;
             },
           }
         );

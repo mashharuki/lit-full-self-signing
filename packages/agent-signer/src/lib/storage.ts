@@ -17,7 +17,7 @@ export class LocalStorageImpl implements Storage {
   private storage: LocalStorage;
 
   constructor() {
-    this.storage = new LocalStorage('./agent-signer-storage');
+    this.storage = new LocalStorage('./.agent-signer-storage');
   }
 
   getItem(key: string): string | null {

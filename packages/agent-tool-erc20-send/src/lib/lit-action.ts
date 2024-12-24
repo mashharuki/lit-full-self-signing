@@ -230,8 +230,16 @@ export default async () => {
     );
     const transferHash = await broadcastTransaction(signedTx);
 
+    if (!transferHash) {
+      throw new Error('Transaction failed: No transaction hash returned');
+    }
+
     if (!ethers.utils.isHexString(transferHash)) {
-      throw new Error(`Invalid transaction hash: ${transferHash}`);
+      throw new Error(
+        `Transaction failed: Invalid transaction hash format. Received: ${JSON.stringify(
+          transferHash
+        )}`
+      );
     }
 
     Lit.Actions.setResponse({
@@ -242,11 +250,31 @@ export default async () => {
     });
   } catch (err: any) {
     console.error('Error:', err);
+
+    // Extract detailed error information
+    const errorDetails = {
+      message: err.message,
+      code: err.code,
+      reason: err.reason,
+      error: err.error,
+      ...(err.transaction && { transaction: err.transaction }),
+      ...(err.receipt && { receipt: err.receipt }),
+    };
+
+    // Construct a detailed error message
+    const errorMessage = [
+      err.reason || err.message,
+      err.error?.message,
+      err.error?.data?.message,
+    ]
+      .filter(Boolean)
+      .join(': ');
+
     Lit.Actions.setResponse({
       response: JSON.stringify({
         status: 'error',
-        error: err.message || String(err),
-        details: err.cause ? String(err.cause) : undefined,
+        error: errorMessage || String(err),
+        details: errorDetails,
       }),
     });
   }
