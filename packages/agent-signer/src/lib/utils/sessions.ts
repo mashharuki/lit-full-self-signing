@@ -1,6 +1,5 @@
 import { LitNodeClientNodeJs } from '@lit-protocol/lit-node-client-nodejs';
 import { ethers } from 'ethers';
-import type { AuthSig } from '@lit-protocol/types';
 import { LIT_ABILITY } from '@lit-protocol/constants';
 import { generateAuthSig, createSiweMessage } from '@lit-protocol/auth-helpers';
 import { LitActionResource, LitPKPResource } from '@lit-protocol/auth-helpers';

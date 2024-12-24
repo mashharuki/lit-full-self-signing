@@ -8,6 +8,10 @@ import type {
   LIT_NETWORKS_KEYS,
   SigResponse,
 } from '@lit-protocol/types';
+import {
+  AUTH_METHOD_SCOPE,
+  AUTH_METHOD_SCOPE_VALUES,
+} from '@lit-protocol/constants';
 
 import {
   CapacityCreditMintOptions,
@@ -43,6 +47,14 @@ export class AgentSigner {
   private pkpInfo: PkpInfo | null = null;
 
   private storage = new LocalStorageImpl();
+
+  /**
+   * Get PKP info from storage
+   */
+  static getPkpInfoFromStorage(): PkpInfo | null {
+    const storage = new LocalStorageImpl();
+    return loadPkpFromStorage(storage);
+  }
 
   /**
    * Initialize the SDK
@@ -290,5 +302,36 @@ export class AgentSigner {
     if (this.litNodeClient) {
       await this.litNodeClient.disconnect();
     }
+  }
+
+  /**
+   * Permit a Lit Action to be executed by this PKP
+   */
+  async pkpPermitLitAction({
+    ipfsCid,
+    signingScopes = [AUTH_METHOD_SCOPE.SignAnything],
+  }: {
+    ipfsCid: string;
+    signingScopes?: AUTH_METHOD_SCOPE_VALUES[];
+  }) {
+    if (!this.litContracts || !this.pkpInfo) {
+      throw new Error('Agent signer not properly initialized');
+    }
+
+    return permitLitAction(this.litContracts, this.pkpInfo, {
+      ipfsCid,
+      signingScopes,
+    });
+  }
+
+  /**
+   * List all permitted Lit Actions for this PKP
+   */
+  async pkpListPermittedActions() {
+    if (!this.litContracts || !this.pkpInfo) {
+      throw new Error('Agent signer not properly initialized');
+    }
+
+    return listPermittedActions(this.litContracts, this.pkpInfo);
   }
 }
