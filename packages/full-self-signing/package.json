@@ -1,8 +1,9 @@
 {
   "name": "@lit-protocol/full-self-signing",
-  "version": "0.1.1-4",
+  "version": "0.1.1-5",
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
     "@lit-protocol/fss-signer": "workspace:*",
@@ -16,7 +17,15 @@
   },
   "type": "commonjs",
   "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "typings": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
   "files": [
     "dist",
     "!**/*.tsbuildinfo"
@@ -24,6 +33,22 @@
   "nx": {
     "sourceRoot": "packages/full-self-signing/src",
     "projectType": "library",
+    "targets": {
+      "build": {
+        "executor": "@nx/js:tsc",
+        "outputs": [
+          "{options.outputPath}"
+        ],
+        "options": {
+          "outputPath": "packages/full-self-signing/dist",
+          "main": "packages/full-self-signing/src/index.ts",
+          "tsConfig": "packages/full-self-signing/tsconfig.lib.json",
+          "assets": [
+            "packages/full-self-signing/*.md"
+          ]
+        }
+      }
+    },
     "name": "full-self-signing"
   }
 }

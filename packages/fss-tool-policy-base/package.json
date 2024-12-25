@@ -1,6 +1,6 @@
 {
   "name": "@lit-protocol/fss-tool-policy-base",
-  "version": "0.1.1-4",
+  "version": "0.1.1-5",
   "publishConfig": {
     "access": "public"
   },
@@ -8,14 +8,14 @@
     "zod": "^3.24.1"
   },
   "type": "commonjs",
-  "main": "./dist/src/index.js",
-  "types": "./dist/src/index.d.ts",
-  "typings": "./dist/src/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "typings": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/src/index.d.ts",
-      "require": "./dist/src/index.js",
-      "default": "./dist/src/index.js"
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
     }
   },
   "files": [

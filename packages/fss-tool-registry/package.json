@@ -1,6 +1,6 @@
 {
   "name": "@lit-protocol/fss-tool-registry",
-  "version": "0.1.1-4",
+  "version": "0.1.1-5",
   "publishConfig": {
     "access": "public"
   },
@@ -12,6 +12,7 @@
   },
   "type": "commonjs",
   "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "typings": "./dist/index.d.ts",
   "files": [
     "dist",
