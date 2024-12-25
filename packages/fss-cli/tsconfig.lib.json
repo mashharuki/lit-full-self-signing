@@ -33,6 +33,9 @@
     },
     {
       "path": "../fss-signer/tsconfig.lib.json"
+    },
+    {
+      "path": "../.."
     }
   ],
   "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"]

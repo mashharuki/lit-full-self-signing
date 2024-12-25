@@ -4,6 +4,9 @@
   "include": [],
   "references": [
     {
+      "path": "../full-self-signing"
+    },
+    {
       "path": "../fss-tool-policy-base"
     },
     {
@@ -16,7 +19,7 @@
       "path": "../fss-signer"
     },
     {
-      "path": "../full-self-signing"
+      "path": "../.."
     },
     {
       "path": "./tsconfig.lib.json"
