@@ -5,7 +5,8 @@
     "access": "public"
   },
   "bin": {
-    "lit-agent": "./dist/cli.js"
+    "lit-agent": "./dist/src/cli.js",
+    "@lit-protocol/fss-cli": "./dist/src/cli.js"
   },
   "dependencies": {
     "@lit-protocol/full-self-signing": "workspace:*",
@@ -24,9 +25,9 @@
     "@types/node-localstorage": "^1.3.3"
   },
   "type": "commonjs",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "typings": "./dist/index.d.ts",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "typings": "./dist/src/index.d.ts",
   "files": [
     "dist",
     "!**/*.tsbuildinfo"
@@ -34,6 +35,22 @@
   "nx": {
     "sourceRoot": "packages/fss-cli/src",
     "projectType": "library",
+    "targets": {
+      "build": {
+        "executor": "@nx/js:tsc",
+        "outputs": [
+          "{options.outputPath}"
+        ],
+        "options": {
+          "outputPath": "packages/fss-cli/dist",
+          "main": "packages/fss-cli/src/index.ts",
+          "tsConfig": "packages/fss-cli/tsconfig.lib.json",
+          "assets": [
+            "packages/fss-cli/*.md"
+          ]
+        }
+      }
+    },
     "name": "fss-cli"
   }
 }

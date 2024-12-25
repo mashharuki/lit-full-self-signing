@@ -181,6 +181,9 @@ importers:
       ethers:
         specifier: 'catalog:'
         version: 5.7.2
+      tslib:
+        specifier: ^2.8.1
+        version: 2.8.1
       zod:
         specifier: ^3.24.1
         version: 3.24.1
@@ -197,6 +200,9 @@ importers:
 
   packages/fss-tool-policy-base:
     dependencies:
+      tslib:
+        specifier: ^2.8.1
+        version: 2.8.1
       zod:
         specifier: ^3.24.1
         version: 3.24.1
