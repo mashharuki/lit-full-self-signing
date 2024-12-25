@@ -1,4 +1,8 @@
-import { LitAgent, LitAgentError, LitAgentErrorType } from '@lit-protocol/fss';
+import {
+  LitAgent,
+  LitAgentError,
+  LitAgentErrorType,
+} from '@lit-protocol/full-self-signing';
 import { ToolInfo } from '@lit-protocol/fss-tool-registry';
 import { logger } from './utils/logger';
 import { storage } from './utils/storage';
@@ -12,6 +16,14 @@ import { promptForToolPermission } from './prompts/permissions';
 import { collectMissingParams } from './prompts/parameters';
 import { promptForToolPolicy } from './prompts/policy';
 import inquirer from 'inquirer';
+
+interface LitAgentErrorWithType extends Error {
+  type: LitAgentErrorType;
+  message: string;
+  details?: {
+    originalError?: Error;
+  };
+}
 
 export class AgentCLI {
   private litAgent: LitAgent | null = null;
@@ -112,21 +124,27 @@ export class AgentCLI {
           result.matchedTool.ipfsCid,
           result.params.foundParams,
           {
-            permissionCallback: async (tool) => {
+            permissionCallback: async (tool: ToolInfo) => {
               const shouldPermit = await promptForToolPermission(tool);
               if (!shouldPermit) {
                 logger.info('Operation cancelled by user');
               }
               return shouldPermit;
             },
-            parameterCallback: async (tool, missingParams) => {
+            parameterCallback: async (
+              tool: ToolInfo,
+              missingParams: string[]
+            ) => {
               const allParams = await collectMissingParams(tool, {
                 foundParams: result.params.foundParams,
                 missingParams,
               });
               return allParams;
             },
-            setNewToolPolicyCallback: async (tool, currentPolicy) => {
+            setNewToolPolicyCallback: async (
+              tool: ToolInfo,
+              currentPolicy: any
+            ) => {
               const handlePolicySetup = async (
                 tool: ToolInfo,
                 currentPolicy: any | null
@@ -159,7 +177,7 @@ export class AgentCLI {
               }
               return result;
             },
-            onPolicyRegistered: (txHash) => {
+            onPolicyRegistered: (txHash: string) => {
               logger.success(
                 `Policy successfully registered! Transaction hash: ${txHash}`
               );
@@ -180,24 +198,27 @@ export class AgentCLI {
         );
       } catch (error) {
         if (error instanceof LitAgentError) {
-          switch (error.type) {
+          const litError = error as LitAgentErrorWithType;
+          switch (litError.type) {
             case LitAgentErrorType.TOOL_EXECUTION_FAILED:
-              logger.error(`Tool execution failed: ${error.message}`);
+              logger.error(`Tool execution failed: ${litError.message}`);
               break;
             case LitAgentErrorType.INVALID_PARAMETERS:
-              logger.error(`Invalid parameters: ${error.message}`);
+              logger.error(`Invalid parameters: ${litError.message}`);
               break;
             case LitAgentErrorType.TOOL_VALIDATION_FAILED:
-              logger.error(`Policy validation failed: ${error.message}`);
+              logger.error(`Policy validation failed: ${litError.message}`);
               break;
             case LitAgentErrorType.TOOL_POLICY_REGISTRATION_FAILED:
-              logger.error(`Failed to set tool policy: ${error.message}`);
-              if (error.details?.originalError instanceof Error) {
-                logger.error(`Reason: ${error.details.originalError.message}`);
+              logger.error(`Failed to set tool policy: ${litError.message}`);
+              if (litError.details?.originalError instanceof Error) {
+                logger.error(
+                  `Reason: ${litError.details.originalError.message}`
+                );
               }
               break;
             default:
-              logger.error(`Operation failed: ${error.message}`);
+              logger.error(`Operation failed: ${litError.message}`);
           }
         } else {
           logger.error(

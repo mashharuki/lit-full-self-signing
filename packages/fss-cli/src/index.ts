@@ -1,4 +1,4 @@
-import { AgentCLI } from './lib/fss-cli';
+import { AgentCLI } from './lib/agent-cli';
 
 export async function startCli(): Promise<void> {
   const cli = new AgentCLI();

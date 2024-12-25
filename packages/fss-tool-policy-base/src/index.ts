@@ -1,1 +1,1 @@
-export * from './lib/fss-tool-policy';
+export * from './lib/agent-tool-policy';
