@@ -183,21 +183,13 @@ The Lit AI Agent project consists of several packages that work together to prov
 
 While that was a lot of steps, now that the Lit Agent is configured, if you run the ERC20 transfer prompt again, you will see that process is much simpler:
 
+- **NOTE:** You can also bypass the Chain selection prompt by specifying the RPC URL and chain ID in the prompt like so:
+
 ```
-✔ What would you like to do? send 20 0x4070c8325e278ca1056e602e08d16d2D5cd79b27 to 0x600DC16993EA1AbdA674A20d432F93041cDa2ef4
+✔ What would you like to do? send 20 0x4070c8325e278ca1056e602e08d16d2D5cd79b27 to 0x600DC16993EA1AbdA674A20d432F93041cDa2ef4 using rpcUrl: 
+https://base-sepolia-rpc.publicnode.com and chainId: 84532
 
 ℹ️  Executing tool...
-
-⚠️  Some parameters are missing. Please provide them:
-✔ Select the chain to use: Last Used (Base Sepolia)
-
-ℹ️  Parameters to be used:
-  tokenIn: 0x4070c8325e278ca1056e602e08d16d2D5cd79b27
-  recipientAddress: 0x600DC16993EA1AbdA674A20d432F93041cDa2ef4
-  amountIn: 20.0
-  rpcUrl: https://base-sepolia-rpc.publicnode.com
-  chainId: 84532
-✔ Would you like to proceed with these parameters? Yes
 
 ✅ Tool execution completed
 Result: {
@@ -205,8 +197,8 @@ Result: {
   "signedData": {},
   "decryptedData": {},
   "claimData": {},
-  "response": "{\"status\":\"success\",\"transferHash\":\"0x64306237d89fd64cab7bb552954bdf00c0579a135001c83313aac72365bb3e6a\"}",
-  "logs": "Getting token info for: 0x4070c8325e278ca1056e602e08d16d2D5cd79b27\nCreating token contract instance...\nFetching token decimals and balance...\nToken decimals: 18\nToken balance: 80000000000000000000\nAmount to send: 20000000000000000000\nEstimated gas limit: 34885\nSigning transfer...\nBroadcasting transfer...\nResult: 0x64306237d89fd64cab7bb552954bdf00c0579a135001c83313aac72365bb3e6a\n"
+  "response": "{\"status\":\"success\",\"transferHash\":\"0xfb735a6c9a0279a84f2ff32d73ebf8dc3bb79c14ff728d5781e2c10da33bfe03\"}",
+  "logs": "Getting token info for: 0x4070c8325e278ca1056e602e08d16d2D5cd79b27\nCreating token contract instance...\nFetching token decimals and balance...\nToken decimals: 18\nToken balance: 60000000000000000000\nAmount to send: 20000000000000000000\nEstimated gas limit: 34885\nSigning transfer...\nBroadcasting transfer...\nResult: 0xfb735a6c9a0279a84f2ff32d73ebf8dc3bb79c14ff728d5781e2c10da33bfe03\n"
 }
 ```
 
