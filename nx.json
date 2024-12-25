@@ -50,7 +50,12 @@
     }
   },
   "release": {
-    "version": {}
+    "projects": ["packages/*", "!packages/agent-contracts"],
+    "version": {
+      "generatorOptions": {
+        "preserveLocalDependencyProtocols": true
+      }
+    }
   },
   "ignore": ["**/dist/**", "**/node_modules/**", "packages/agent-contracts/**"]
 }
