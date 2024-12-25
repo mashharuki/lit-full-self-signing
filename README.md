@@ -16,9 +16,16 @@ The Lit AI Agent project consists of several packages that work together to prov
 
 ## Running the Lit Agent CLI Demo
 
-1. Run the Lit Agent CLI
-2. Select the `Generate New` options to generate a new Lit Auth private key
-3. Follow the instructions to back up the key and fund the address with Lit test tokens:
+1. Install the Lit Agent CLI
+   ```bash
+   npm install -g @lit-protocol/fss-cli@latest
+   ```
+2. Run the Lit Agent CLI
+   ```bash
+   lit-agent
+   ```
+3. Select the `Generate New` options to generate a new Lit Auth private key
+4. Follow the instructions to back up the key and fund the address with Lit test tokens:
    - Your private key will be saved in `.agent-cli-storage/auth-wallet`
     ```bash
     ℹ️  Generated new Lit auth wallet with address: 0xYOUR_ADDRESS
@@ -27,10 +34,10 @@ The Lit AI Agent project consists of several packages that work together to prov
     2. Fund your wallet (0xYOUR_ADDRESS) with Lit test tokens
     Get test tokens from: https://chronicle-yellowstone-faucet.getlit.dev/
     ```
-4. Confirm in the CLI that you have funded your wallet
-5. Provide your OpenAI API key to the CLI
+5. Confirm in the CLI that you have funded your wallet
+6. Provide your OpenAI API key to the CLI
    - Please make sure you have the `gpt-4o-mini` model enabled in your API key
-6. You will be prompted:
+7. You will be prompted:
    - Press `ENTER` or type `Y` and hit `ENTER` to use the default registry
     ```bash
     ? Would you like to use the default Lit PKP Tool Policy Registry? (recommended) (Y/n)
