@@ -1,4 +1,4 @@
-# @lit-protocol/agent-tool-registry
+# @lit-protocol/fss-tool-registry
 
 Central registry for Lit AI Agent tools. This package manages the registration, discovery, and validation of tools that can be executed by Lit agents.
 
@@ -13,7 +13,7 @@ Central registry for Lit AI Agent tools. This package manages the registration, 
 ## Installation
 
 ```bash
-pnpm add @lit-protocol/agent-tool-registry
+pnpm add @lit-protocol/fss-tool-registry
 ```
 
 ## Usage
@@ -25,7 +25,7 @@ import {
   registerTool,
   ToolInfo,
   validateParamsAgainstPolicy 
-} from '@lit-protocol/agent-tool-registry';
+} from '@lit-protocol/fss-tool-registry';
 
 // Define your tool
 const myTool: ToolInfo = {

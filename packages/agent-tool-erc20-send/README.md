@@ -1,4 +1,4 @@
-# @lit-protocol/agent-tool-erc20-send
+# @lit-protocol/fss-tool-erc20-send
 
 A Lit AI Agent tool for sending ERC20 tokens. This package serves as both an example implementation and a production-ready tool for token transfers.
 
@@ -15,7 +15,7 @@ A Lit AI Agent tool for sending ERC20 tokens. This package serves as both an exa
 ## Installation
 
 ```bash
-pnpm add @lit-protocol/agent-tool-erc20-send
+pnpm add @lit-protocol/fss-tool-erc20-send
 ```
 
 ## Supported Networks
@@ -35,7 +35,7 @@ Custom networks can be added through configuration.
 ### Basic Token Transfer
 
 ```typescript
-import { LitAgent } from '@lit-protocol/agent';
+import { LitAgent } from '@lit-protocol/fss';
 
 const agent = new LitAgent(authKey, openAiKey);
 await agent.init();

@@ -1,4 +1,4 @@
-import { AgentSigner } from '@lit-protocol/agent-signer';
+import { AgentSigner } from '@lit-protocol/fss-signer';
 import { LitAgentError, LitAgentErrorType } from '../../errors';
 
 export async function createAgentWallet(signer: AgentSigner): Promise<void> {

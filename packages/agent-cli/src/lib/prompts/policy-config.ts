@@ -1,9 +1,9 @@
 import inquirer from 'inquirer';
-import type { ToolInfo } from '@lit-protocol/agent-tool-registry';
+import type { ToolInfo } from '@lit-protocol/fss-tool-registry';
 import {
   getToolFromRegistry,
   isToolSupported,
-} from '@lit-protocol/agent-tool-registry';
+} from '@lit-protocol/fss-tool-registry';
 import { logger } from '../utils/logger';
 import { z } from 'zod';
 import { ethers } from 'ethers';

@@ -1,8 +1,8 @@
 {
-  "name": "@lit-protocol/agent-tool-registry",
+  "name": "@lit-protocol/fss-tool-registry",
   "version": "0.1.1-0",
   "dependencies": {
-    "@lit-protocol/agent-tool-erc20-send": "workspace:*",
+    "@lit-protocol/fss-tool-erc20-send": "workspace:*",
     "ethers": "catalog:",
     "bs58": "^6.0.0",
     "tslib": "^2.3.0"

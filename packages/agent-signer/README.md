@@ -1,4 +1,4 @@
-# @lit-protocol/agent-signer
+# @lit-protocol/fss-signer
 
 Secure transaction signing implementation for Lit AI Agents using Lit Protocol's Programmable Key Pairs (PKPs).
 
@@ -12,13 +12,13 @@ Secure transaction signing implementation for Lit AI Agents using Lit Protocol's
 ## Installation
 
 ```bash
-pnpm add @lit-protocol/agent-signer
+pnpm add @lit-protocol/fss-signer
 ```
 
 ## Usage
 
 ```typescript
-import { AgentSigner } from '@lit-protocol/agent-signer';
+import { AgentSigner } from '@lit-protocol/fss-signer';
 
 // Create a new signer instance
 const signer = await AgentSigner.create(

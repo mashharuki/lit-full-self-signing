@@ -1,5 +1,5 @@
 {
-  "name": "@lit-protocol/agent-tool-policy-base",
+  "name": "@lit-protocol/fss-tool-policy-base",
   "version": "0.1.1-0",
   "dependencies": {
     "zod": "^3.24.1"

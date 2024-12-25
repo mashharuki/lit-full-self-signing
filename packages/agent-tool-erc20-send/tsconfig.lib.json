@@ -13,7 +13,7 @@
     "moduleResolution": "node",
     "module": "commonjs",
     "paths": {
-      "@lit-protocol/agent-tool-policy-base": ["../agent-tool-policy-base/src"]
+      "@lit-protocol/fss-tool-policy-base": ["../agent-tool-policy-base/src"]
     }
   },
   "include": ["src/**/*.ts"],

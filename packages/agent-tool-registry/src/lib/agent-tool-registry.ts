@@ -10,7 +10,7 @@ import {
   encodeSendERC20Policy,
   decodeSendERC20Policy,
   IPFS_CID as SendERC20IpfsCid,
-} from '@lit-protocol/agent-tool-erc20-send';
+} from '@lit-protocol/fss-tool-erc20-send';
 import { ethers } from 'ethers';
 
 export const SendERC20 = {

@@ -32,11 +32,11 @@
     "verbatimModuleSyntax": false,
     "baseUrl": ".",
     "paths": {
-      "@lit-protocol/agent-signer": ["./packages/agent-signer/src"],
-      "@lit-protocol/agent-tool-erc20-send": [
+      "@lit-protocol/fss-signer": ["./packages/agent-signer/src"],
+      "@lit-protocol/fss-tool-erc20-send": [
         "./packages/agent-tool-erc20-send/src"
       ],
-      "@lit-protocol/agent-tool-policy-base/*": [
+      "@lit-protocol/fss-tool-policy-base/*": [
         "./packages/agent-tool-policy-base/src/*"
       ]
     }

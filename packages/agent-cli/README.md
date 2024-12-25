@@ -1,11 +1,11 @@
-# @lit-protocol/agent-cli
+# @lit-protocol/fss-cli
 
 A command-line interface for interacting with Lit Protocol agents.
 
 ## Installation
 
 ```bash
-npm install -g @lit-protocol/agent-cli
+npm install -g @lit-protocol/fss-cli
 ```
 
 ## Usage

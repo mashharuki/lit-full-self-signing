@@ -10,11 +10,11 @@
     "moduleResolution": "nodenext",
     "types": ["node"],
     "paths": {
-      "@lit-protocol/agent-signer": ["../agent-signer/src"],
-      "@lit-protocol/agent-tool-registry": ["../agent-tool-registry/src"],
-      "@lit-protocol/agent-tool-erc20-send": ["../agent-tool-erc20-send/src"],
-      "@lit-protocol/agent": ["../agent/src"],
-      "@lit-protocol/agent-tool-policy-base": ["../agent-tool-policy-base/src"]
+      "@lit-protocol/fss-signer": ["../agent-signer/src"],
+      "@lit-protocol/fss-tool-registry": ["../agent-tool-registry/src"],
+      "@lit-protocol/fss-tool-erc20-send": ["../agent-tool-erc20-send/src"],
+      "@lit-protocol/full-self-signing": ["../agent/src"],
+      "@lit-protocol/fss-tool-policy-base": ["../agent-tool-policy-base/src"]
     }
   },
   "include": ["src/**/*.ts"],

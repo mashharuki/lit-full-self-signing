@@ -1,4 +1,4 @@
-# @lit-protocol/agent
+# @lit-protocol/full-self-signing
 
 The core agent implementation for the Lit AI Agent framework. This package provides the main functionality for processing natural language instructions and executing blockchain operations through registered tools.
 
@@ -16,13 +16,13 @@ The core agent implementation for the Lit AI Agent framework. This package provi
 ## Installation
 
 ```bash
-pnpm add @lit-protocol/agent
+pnpm add @lit-protocol/full-self-signing
 ```
 
 ## Basic Usage
 
 ```typescript
-import { LitAgent } from '@lit-protocol/agent';
+import { LitAgent } from '@lit-protocol/full-self-signing';
 
 // Initialize the agent
 const agent = new LitAgent({

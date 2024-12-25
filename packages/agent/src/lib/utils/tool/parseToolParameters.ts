@@ -1,5 +1,5 @@
 import { OpenAI } from 'openai';
-import type { ToolInfo } from '@lit-protocol/agent-tool-registry';
+import type { ToolInfo } from '@lit-protocol/fss-tool-registry';
 
 export async function parseToolParameters(
   openai: OpenAI,

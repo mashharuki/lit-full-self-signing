@@ -1,4 +1,4 @@
-import { AgentSigner, ExecuteJsParams } from '@lit-protocol/agent-signer';
+import { AgentSigner, ExecuteJsParams } from '@lit-protocol/fss-signer';
 import { LitAgentError, LitAgentErrorType } from '../../errors';
 
 export async function executeAction(

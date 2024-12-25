@@ -2,7 +2,7 @@ import { OpenAI } from 'openai';
 import {
   listAvailableTools,
   type ToolInfo,
-} from '@lit-protocol/agent-tool-registry';
+} from '@lit-protocol/fss-tool-registry';
 import { generateToolMatchingPrompt } from './generateToolMatchingPrompt';
 
 export async function analyzeUserIntent(

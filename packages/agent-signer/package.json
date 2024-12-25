@@ -1,5 +1,5 @@
 {
-  "name": "@lit-protocol/agent-signer",
+  "name": "@lit-protocol/fss-signer",
   "version": "0.1.0-3",
   "publishConfig": {
     "access": "public"

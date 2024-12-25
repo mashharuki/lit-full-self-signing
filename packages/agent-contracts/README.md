@@ -1,4 +1,4 @@
-# @lit-protocol/agent-contracts
+# @lit-protocol/fss-contracts
 
 Smart contracts for the Lit AI Agent system. These contracts manage agent policies, permissions, and tool registrations on-chain.
 
@@ -13,7 +13,7 @@ Smart contracts for the Lit AI Agent system. These contracts manage agent polici
 ## Installation
 
 ```bash
-pnpm add @lit-protocol/agent-contracts
+pnpm add @lit-protocol/fss-contracts
 ```
 
 ## Smart Contracts

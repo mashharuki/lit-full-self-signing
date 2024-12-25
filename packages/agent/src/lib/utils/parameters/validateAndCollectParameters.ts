@@ -1,4 +1,4 @@
-import type { ToolInfo } from '@lit-protocol/agent-tool-registry';
+import type { ToolInfo } from '@lit-protocol/fss-tool-registry';
 import { LitAgentError, LitAgentErrorType } from '../../errors';
 
 export async function validateAndCollectParameters(

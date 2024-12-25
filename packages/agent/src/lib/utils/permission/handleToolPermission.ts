@@ -1,5 +1,5 @@
-import { AgentSigner } from '@lit-protocol/agent-signer';
-import type { ToolInfo } from '@lit-protocol/agent-tool-registry';
+import { AgentSigner } from '@lit-protocol/fss-signer';
+import type { ToolInfo } from '@lit-protocol/fss-tool-registry';
 import { LitAgentError, LitAgentErrorType } from '../../errors';
 import { checkToolPermission } from './checkToolPermission';
 import { permitTool } from './permitTool';

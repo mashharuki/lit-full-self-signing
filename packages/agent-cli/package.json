@@ -1,10 +1,10 @@
 {
-  "name": "@lit-protocol/agent-cli",
+  "name": "@lit-protocol/fss-cli",
   "version": "0.1.1-0",
   "dependencies": {
-    "@lit-protocol/agent": "workspace:*",
-    "@lit-protocol/agent-signer": "workspace:*",
-    "@lit-protocol/agent-tool-registry": "workspace:*",
+    "@lit-protocol/full-self-signing": "workspace:*",
+    "@lit-protocol/fss-signer": "workspace:*",
+    "@lit-protocol/fss-tool-registry": "workspace:*",
     "@lit-protocol/constants": "catalog:",
     "commander": "^12.1.0",
     "ethers": "catalog:",

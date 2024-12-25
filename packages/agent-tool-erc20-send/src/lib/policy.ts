@@ -3,7 +3,7 @@ import {
   BaseLitActionPolicySchema,
   BaseEthereumAddressSchema,
   EthereumAddress,
-} from '@lit-protocol/agent-tool-policy-base';
+} from '@lit-protocol/fss-tool-policy-base';
 import { z } from 'zod';
 import { ethers } from 'ethers';
 

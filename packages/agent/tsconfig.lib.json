@@ -10,7 +10,7 @@
     "moduleResolution": "nodenext",
     "types": ["node"],
     "paths": {
-      "@lit-protocol/agent-tool-registry": ["../agent-tool-registry/src"]
+      "@lit-protocol/fss-tool-registry": ["../agent-tool-registry/src"]
     }
   },
   "include": ["src/**/*.ts"],

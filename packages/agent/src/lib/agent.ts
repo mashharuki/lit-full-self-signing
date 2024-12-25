@@ -1,9 +1,9 @@
-import { AgentSigner } from '@lit-protocol/agent-signer';
-import type { ToolInfo } from '@lit-protocol/agent-tool-registry';
+import { AgentSigner } from '@lit-protocol/fss-signer';
+import type { ToolInfo } from '@lit-protocol/fss-tool-registry';
 import {
   getToolFromRegistry,
   validateParamsAgainstPolicy,
-} from '@lit-protocol/agent-tool-registry';
+} from '@lit-protocol/fss-tool-registry';
 import { OpenAI } from 'openai';
 
 import { LitAgentError, LitAgentErrorType } from './errors';

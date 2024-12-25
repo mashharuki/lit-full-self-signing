@@ -1,9 +1,9 @@
 {
-  "name": "@lit-protocol/agent",
+  "name": "@lit-protocol/full-self-signing",
   "version": "0.1.1-0",
   "dependencies": {
-    "@lit-protocol/agent-signer": "workspace:*",
-    "@lit-protocol/agent-tool-registry": "workspace:*",
+    "@lit-protocol/fss-signer": "workspace:*",
+    "@lit-protocol/fss-tool-registry": "workspace:*",
     "@lit-protocol/constants": "catalog:",
     "bs58": "^5.0.0",
     "ethers": "catalog:",

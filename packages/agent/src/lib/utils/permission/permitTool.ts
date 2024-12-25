@@ -1,4 +1,4 @@
-import { AgentSigner } from '@lit-protocol/agent-signer';
+import { AgentSigner } from '@lit-protocol/fss-signer';
 import { AUTH_METHOD_SCOPE } from '@lit-protocol/constants';
 import { LitAgentError, LitAgentErrorType } from '../../errors';
 

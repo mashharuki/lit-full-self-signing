@@ -1,7 +1,7 @@
 import {
   listAvailableTools,
   type ToolInfo,
-} from '@lit-protocol/agent-tool-registry';
+} from '@lit-protocol/fss-tool-registry';
 import { LitAgentError, LitAgentErrorType } from '../../errors';
 
 export async function findTool(ipfsCid: string): Promise<ToolInfo> {

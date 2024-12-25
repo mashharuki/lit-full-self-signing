@@ -1,4 +1,4 @@
-import type { ToolInfo } from '@lit-protocol/agent-tool-registry';
+import type { ToolInfo } from '@lit-protocol/fss-tool-registry';
 
 export function generateToolMatchingPrompt(tools: ToolInfo[]): string {
   const toolDescriptions = tools

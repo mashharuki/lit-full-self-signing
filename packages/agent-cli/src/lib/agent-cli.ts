@@ -1,9 +1,5 @@
-import {
-  LitAgent,
-  LitAgentError,
-  LitAgentErrorType,
-} from '@lit-protocol/agent';
-import { ToolInfo } from '@lit-protocol/agent-tool-registry';
+import { LitAgent, LitAgentError, LitAgentErrorType } from '@lit-protocol/fss';
+import { ToolInfo } from '@lit-protocol/fss-tool-registry';
 import { logger } from './utils/logger';
 import { storage } from './utils/storage';
 import {
