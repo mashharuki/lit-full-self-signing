@@ -50,12 +50,12 @@
     }
   },
   "release": {
-    "projects": ["packages/*", "!packages/agent-contracts"],
+    "projects": ["packages/*", "!packages/fss-contracts"],
     "version": {
       "generatorOptions": {
         "preserveLocalDependencyProtocols": true
       }
     }
   },
-  "ignore": ["**/dist/**", "**/node_modules/**", "packages/agent-contracts/**"]
+  "ignore": ["**/dist/**", "**/node_modules/**", "packages/fss-contracts/**"]
 }

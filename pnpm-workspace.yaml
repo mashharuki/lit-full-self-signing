@@ -1,6 +1,6 @@
 packages:
   - 'packages/*'
-  - '!packages/agent-contracts'
+  - '!packages/fss-contracts'
 
 catalog:
   '@lit-protocol/lit-node-client-nodejs': 7.0.2

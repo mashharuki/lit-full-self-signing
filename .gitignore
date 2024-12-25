@@ -43,5 +43,5 @@ Thumbs.db
 
 test-output
 
-.agent-cli-storage
-.agent-signer-storage
+.fss-cli-storage
+.fss-signer-storage

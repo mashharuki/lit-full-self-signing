@@ -4,22 +4,22 @@
   "files": [],
   "references": [
     {
-      "path": "./packages/agent-signer"
+      "path": "./packages/fss-signer"
     },
     {
-      "path": "./packages/agent-tool-policy-base"
+      "path": "./packages/fss-tool-policy-base"
     },
     {
-      "path": "./packages/agent-tool-erc20-send"
+      "path": "./packages/fss-tool-erc20-send"
     },
     {
-      "path": "./packages/agent-cli"
+      "path": "./packages/fss-cli"
     },
     {
-      "path": "./packages/agent-tool-registry"
+      "path": "./packages/fss-tool-registry"
     },
     {
-      "path": "./packages/agent"
+      "path": "./packages/full-self-signing"
     }
   ]
 }

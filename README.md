@@ -1,4 +1,4 @@
-# Lit AI Agent
+# Lit Full Self Signing
 
 A modular framework for building AI agents that can interact with blockchain and web3 infrastructure through the Lit Protocol ecosystem. This project enables the creation of autonomous agents that can execute blockchain transactions and interact with smart contracts based on natural language instructions, while maintaining security through configurable policies.
 
@@ -6,13 +6,13 @@ A modular framework for building AI agents that can interact with blockchain and
 
 The Lit AI Agent project consists of several packages that work together to provide a complete framework for building and deploying AI agents:
 
-- `agent`: Core agent implementation that handles natural language processing and tool execution
-- `agent-cli`: Command-line interface for interacting with Lit agents
-- `agent-contracts`: Smart contracts for agent registry and policy management
-- `agent-signer`: Handles authentication and signing of transactions
-- `agent-tool-registry`: Registry for available agent tools and capabilities
-- `agent-tool-erc20-send`: Example tool implementation for sending ERC20 tokens
-- `agent-tool-policy-base`: Shared utilities and interfaces for building agent tools
+- `full-self-signing`: Core agent implementation that handles natural language processing and tool execution
+- `fss-cli`: Command-line interface for interacting with Lit agents
+- `fss-contracts`: Smart contracts for agent registry and policy management
+- `fss-signer`: Handles authentication and signing of transactions
+- `fss-tool-registry`: Registry for available agent tools and capabilities
+- `fss-tool-erc20-send`: Example tool implementation for sending ERC20 tokens
+- `fss-tool-policy-base`: Shared utilities and interfaces for building agent tools
 
 ## Running the Lit Agent CLI Demo
 

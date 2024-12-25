@@ -1,0 +1,22 @@
+{
+  "name": "@lit-protocol/fss-tool-registry",
+  "version": "0.1.1-0",
+  "dependencies": {
+    "@lit-protocol/fss-tool-erc20-send": "workspace:*",
+    "ethers": "catalog:",
+    "bs58": "^6.0.0",
+    "tslib": "^2.3.0"
+  },
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "typings": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "!**/*.tsbuildinfo"
+  ],
+  "nx": {
+    "sourceRoot": "packages/fss-tool-registry/src",
+    "projectType": "library",
+    "name": "fss-tool-registry"
+  }
+}
