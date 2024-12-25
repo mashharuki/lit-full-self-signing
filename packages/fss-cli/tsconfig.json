@@ -4,6 +4,9 @@
   "include": [],
   "references": [
     {
+      "path": "../full-self-signing"
+    },
+    {
       "path": "../fss-tool-policy-base"
     },
     {
