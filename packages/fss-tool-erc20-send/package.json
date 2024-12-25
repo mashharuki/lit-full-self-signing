@@ -1,6 +1,6 @@
 {
   "name": "@lit-protocol/fss-tool-erc20-send",
-  "version": "0.1.1-8",
+  "version": "0.1.1-9",
   "publishConfig": {
     "access": "public"
   },
@@ -67,6 +67,15 @@
             "node tools/scripts/deploy-lit-action.js"
           ],
           "cwd": "packages/fss-tool-erc20-send"
+        }
+      },
+      "publish": {
+        "executor": "@nx/js:npm-publish",
+        "dependsOn": [
+          "deploy"
+        ],
+        "options": {
+          "packageRoot": "dist"
         }
       }
     },
