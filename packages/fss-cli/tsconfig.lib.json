@@ -6,14 +6,14 @@
     "outDir": "dist",
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
     "emitDeclarationOnly": false,
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
+    "module": "commonjs",
+    "moduleResolution": "node",
     "types": ["node"],
     "paths": {
       "@lit-protocol/fss-signer": ["../fss-signer/src"],
       "@lit-protocol/fss-tool-registry": ["../fss-tool-registry/src"],
       "@lit-protocol/fss-tool-erc20-send": ["../fss-tool-erc20-send/src"],
-      "@lit-protocol/full-self-signing": ["../fss/src"],
+      "@lit-protocol/full-self-signing": ["../full-self-signing/src"],
       "@lit-protocol/fss-tool-policy-base": ["../fss-tool-policy-base/src"]
     }
   },
@@ -33,9 +33,6 @@
     },
     {
       "path": "../fss-signer/tsconfig.lib.json"
-    },
-    {
-      "path": "../.."
     }
   ],
   "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"]

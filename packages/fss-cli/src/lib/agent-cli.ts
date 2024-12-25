@@ -4,6 +4,7 @@ import {
   LitAgentErrorType,
 } from '@lit-protocol/full-self-signing';
 import { ToolInfo } from '@lit-protocol/fss-tool-registry';
+import inquirer from 'inquirer';
 import { logger } from './utils/logger';
 import { storage } from './utils/storage';
 import {
@@ -15,15 +16,6 @@ import { promptForUserIntent } from './prompts/intent';
 import { promptForToolPermission } from './prompts/permissions';
 import { collectMissingParams } from './prompts/parameters';
 import { promptForToolPolicy } from './prompts/policy';
-import inquirer from 'inquirer';
-
-interface LitAgentErrorWithType extends Error {
-  type: LitAgentErrorType;
-  message: string;
-  details?: {
-    originalError?: Error;
-  };
-}
 
 export class AgentCLI {
   private litAgent: LitAgent | null = null;
@@ -58,10 +50,11 @@ export class AgentCLI {
       logger.success('Successfully initialized Lit Agent');
     } catch (error) {
       if (error instanceof LitAgentError) {
-        switch (error.type) {
+        const litError = error as LitAgentError;
+        switch (litError.type) {
           case LitAgentErrorType.INSUFFICIENT_BALANCE: {
             const authWallet = storage.getWallet();
-            if (!authWallet) throw error;
+            if (!authWallet) throw litError;
 
             logger.error(
               'Your Auth Wallet does not have enough Lit test tokens to mint the Agent Wallet.'
@@ -76,12 +69,12 @@ export class AgentCLI {
             break;
           }
           case LitAgentErrorType.WALLET_CREATION_FAILED: {
-            logger.error(`Failed to create agent wallet: ${error.message}`);
+            logger.error(`Failed to create agent wallet: ${litError.message}`);
             process.exit(1);
             break;
           }
           default: {
-            logger.error(`Failed to initialize Lit Agent: ${error.message}`);
+            logger.error(`Failed to initialize Lit Agent: ${litError.message}`);
             process.exit(1);
             break;
           }
@@ -198,7 +191,7 @@ export class AgentCLI {
         );
       } catch (error) {
         if (error instanceof LitAgentError) {
-          const litError = error as LitAgentErrorWithType;
+          const litError = error as LitAgentError;
           switch (litError.type) {
             case LitAgentErrorType.TOOL_EXECUTION_FAILED:
               logger.error(`Tool execution failed: ${litError.message}`);
