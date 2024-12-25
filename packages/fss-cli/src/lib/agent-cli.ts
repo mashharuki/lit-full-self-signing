@@ -4,6 +4,7 @@ import {
   LitAgentErrorType,
 } from '@lit-protocol/full-self-signing';
 import { ToolInfo } from '@lit-protocol/fss-tool-registry';
+import { AgentSigner } from '@lit-protocol/fss-signer';
 import inquirer from 'inquirer';
 import { logger } from './utils/logger';
 import { storage } from './utils/storage';
@@ -48,6 +49,12 @@ export class AgentCLI {
 
       await this.litAgent.init();
       logger.success('Successfully initialized Lit Agent');
+
+      // Get and log the PKP address
+      const pkpInfo = AgentSigner.getPkpInfoFromStorage();
+      if (pkpInfo) {
+        logger.info(`Lit Agent Wallet Address: ${pkpInfo.ethAddress}`);
+      }
     } catch (error) {
       if (error instanceof LitAgentError) {
         const litError = error as LitAgentError;
