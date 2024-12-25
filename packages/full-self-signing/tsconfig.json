@@ -1,0 +1,25 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "../fss-tool-policy-base"
+    },
+    {
+      "path": "../fss-tool-erc20-send"
+    },
+    {
+      "path": "../fss-tool-registry"
+    },
+    {
+      "path": "../fss-signer"
+    },
+    {
+      "path": "./tsconfig.lib.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ]
+}

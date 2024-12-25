@@ -1,12 +1,11 @@
 {
-  "name": "@lit-ai-agent/source",
+  "name": "@lit-protocol/full-self-signing",
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
     "build": "npx nx run-many -t build",
     "clean": "node tools/clean.js"
   },
-  "private": true,
   "devDependencies": {
     "@eslint/js": "^9.8.0",
     "@nx/eslint": "20.3.0",

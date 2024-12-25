@@ -50,9 +50,12 @@
     }
   },
   "release": {
+    "projects": ["packages/*", "!packages/fss-contracts"],
     "version": {
-      "preVersionCommand": "pnpm dlx nx run-many -t build"
+      "generatorOptions": {
+        "preserveLocalDependencyProtocols": true
+      }
     }
   },
-  "ignore": ["**/dist/**", "**/node_modules/**", "packages/agent-contracts/**"]
+  "ignore": ["**/dist/**", "**/node_modules/**", "packages/fss-contracts/**"]
 }
