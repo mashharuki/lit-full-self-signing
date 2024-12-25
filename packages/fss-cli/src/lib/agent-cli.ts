@@ -17,6 +17,7 @@ import { promptForUserIntent } from './prompts/intent';
 import { promptForToolPermission } from './prompts/permissions';
 import { collectMissingParams } from './prompts/parameters';
 import { promptForToolPolicy } from './prompts/policy';
+import { ethers } from 'ethers';
 
 export class AgentCLI {
   private litAgent: LitAgent | null = null;
@@ -173,7 +174,58 @@ export class AgentCLI {
               };
               const result = await handlePolicySetup(tool, currentPolicy);
               if (result.usePolicy && result.policyValues) {
-                logger.info('Registering policy on chain...');
+                // Get the PKP address to show in the prompt
+                const pkpInfo = AgentSigner.getPkpInfoFromStorage();
+                if (pkpInfo) {
+                  let hasEnoughBalance = false;
+                  while (!hasEnoughBalance) {
+                    try {
+                      // Check the actual balance using the litAgent
+                      const balance = await this.litAgent!.getLitTokenBalance();
+                      const minimumBalance = ethers.utils.parseEther('0.01');
+
+                      if (balance.lt(minimumBalance)) {
+                        logger.warn(
+                          `Your Lit Agent Wallet (${
+                            pkpInfo.ethAddress
+                          }) has ${ethers.utils.formatEther(
+                            balance
+                          )} LIT. Minimum required is 0.01 LIT.`
+                        );
+                        logger.info(
+                          'Please fund your wallet with Lit test tokens from: https://chronicle-yellowstone-faucet.getlit.dev/'
+                        );
+
+                        const { hasFunded } = await inquirer.prompt([
+                          {
+                            type: 'confirm',
+                            name: 'hasFunded',
+                            message:
+                              'Have you funded your wallet with more tokens?',
+                            default: false,
+                          },
+                        ]);
+
+                        if (!hasFunded) {
+                          return { usePolicy: false };
+                        }
+                        // Continue the loop to check new balance
+                      } else {
+                        hasEnoughBalance = true;
+                      }
+                    } catch (error) {
+                      logger.error(
+                        'Failed to check Lit Agent Wallet balance. Please ensure you have sufficient Lit test tokens.'
+                      );
+                      if (error instanceof Error) {
+                        logger.error(`Error: ${error.message}`);
+                      }
+                      return { usePolicy: false };
+                    }
+                  }
+
+                  logger.info('Registering policy on chain...');
+                }
               }
               return result;
             },

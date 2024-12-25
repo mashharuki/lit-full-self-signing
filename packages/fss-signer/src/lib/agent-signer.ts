@@ -60,6 +60,28 @@ export class AgentSigner {
   }
 
   /**
+   * Get the Lit token balance of the PKP wallet
+   */
+  async getLitTokenBalance(): Promise<ethers.BigNumber> {
+    const pkpInfo = loadPkpFromStorage(this.storage);
+    if (!pkpInfo) {
+      throw new LitAgentError(
+        LitAgentErrorType.INITIALIZATION_FAILED,
+        'No PKP wallet found in storage'
+      );
+    }
+
+    if (!this.ethersWallet?.provider) {
+      throw new LitAgentError(
+        LitAgentErrorType.INITIALIZATION_FAILED,
+        'Ethers provider not initialized'
+      );
+    }
+
+    return await this.ethersWallet.provider.getBalance(pkpInfo.ethAddress);
+  }
+
+  /**
    * Initialize the SDK
    */
   static async create(

@@ -5,6 +5,7 @@ import {
   validateParamsAgainstPolicy,
 } from '@lit-protocol/fss-tool-registry';
 import { OpenAI } from 'openai';
+import { ethers } from 'ethers';
 
 import { LitAgentError, LitAgentErrorType } from './errors';
 import {
@@ -35,6 +36,20 @@ export class LitAgent {
   ) {
     this.openai = new OpenAI({ apiKey: openAiApiKey });
     this.openAiModel = openAiModel;
+  }
+
+  /**
+   * Get the auth private key used to initialize this agent
+   */
+  public getAuthPrivateKey(): string {
+    return this.litAuthPrivateKey;
+  }
+
+  /**
+   * Get the Lit token balance of the PKP wallet
+   */
+  public async getLitTokenBalance(): Promise<ethers.BigNumber> {
+    return await this.signer.getLitTokenBalance();
   }
 
   public async init(): Promise<void> {
