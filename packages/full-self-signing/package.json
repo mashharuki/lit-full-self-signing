@@ -1,6 +1,6 @@
 {
   "name": "@lit-protocol/full-self-signing",
-  "version": "0.1.1-0",
+  "version": "0.1.1-1",
   "dependencies": {
     "@lit-protocol/fss-signer": "workspace:*",
     "@lit-protocol/fss-tool-registry": "workspace:*",
