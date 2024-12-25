@@ -38,9 +38,6 @@ declare global {
 }
 
 export default async () => {
-  // Don't remove me yet, still debugging
-  console.log('REMOVE ME 14');
-
   try {
     async function validatePolicy(amount: any) {
       // Tool policy registry contract
@@ -89,7 +86,9 @@ export default async () => {
       // Validate token
       if (
         decodedPolicy.allowedTokens.length > 0 &&
-        !decodedPolicy.allowedTokens.includes(params.tokenIn.toLowerCase())
+        !decodedPolicy.allowedTokens
+          .map((addr: string) => ethers.utils.getAddress(addr))
+          .includes(ethers.utils.getAddress(params.tokenIn))
       ) {
         throw new Error(
           `Token ${
@@ -103,9 +102,9 @@ export default async () => {
       // Validate recipient
       if (
         decodedPolicy.allowedRecipients.length > 0 &&
-        !decodedPolicy.allowedRecipients.includes(
-          params.recipientAddress.toLowerCase()
-        )
+        !decodedPolicy.allowedRecipients
+          .map((addr: string) => ethers.utils.getAddress(addr))
+          .includes(ethers.utils.getAddress(params.recipientAddress))
       ) {
         throw new Error(
           `Recipient ${
