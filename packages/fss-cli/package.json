@@ -1,8 +1,11 @@
 {
   "name": "@lit-protocol/fss-cli",
-  "version": "0.1.1-6",
+  "version": "0.1.1-7",
   "publishConfig": {
     "access": "public"
+  },
+  "bin": {
+    "lit-agent": "./dist/cli.js"
   },
   "dependencies": {
     "@lit-protocol/full-self-signing": "workspace:*",
