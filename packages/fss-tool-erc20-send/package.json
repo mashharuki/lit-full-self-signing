@@ -1,6 +1,9 @@
 {
   "name": "@lit-protocol/fss-tool-erc20-send",
-  "version": "0.1.1-3",
+  "version": "0.1.1-4",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@lit-protocol/fss-tool-policy-base": "workspace:*",
     "ethers": "catalog:",
